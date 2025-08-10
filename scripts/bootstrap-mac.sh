@@ -19,7 +19,8 @@ if ! grep -qx "$BREW_ZSH" /etc/shells; then
 fi
 
 # 3) Install packages
-brew bundle --file="$(dirname "$0")/brew/Brewfile.mac" --no-lock
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+brew bundle --file="$DIR/brew/Brewfile.mac"
 
 # 4) Make zsh default (brew version)
 chsh -s "$BREW_ZSH" "$USER" || true

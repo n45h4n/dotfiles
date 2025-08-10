@@ -48,7 +48,7 @@ brew "sqlite"
 brew "mysql-client"
 
 # --- cloud / misc ---
-brew "ngrok"
+cask "ngrok"
 brew "ffmpeg"
 brew "rclone"
 

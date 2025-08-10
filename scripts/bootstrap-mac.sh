@@ -1,48 +1,63 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 0) Install Homebrew if missing
+# Resolve repo root (…/dotfiles) regardless of where this script is called from
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# 0) Ensure Xcode Command Line Tools (some formulae need them)
+if ! xcode-select -p >/dev/null 2>&1; then
+  echo "📦 Installing Xcode Command Line Tools (this may pop up a dialog)…"
+  xcode-select --install || true
+fi
+
+# 1) Install Homebrew if missing
 if ! command -v brew >/dev/null 2>&1; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-# 1) Put brew on PATH for current & future shells
-eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
-if ! grep -qs 'brew shellenv' "$HOME/.zprofile"; then
-  { echo 'eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"'; } >> "$HOME/.zprofile"
+# 2) Put brew on PATH for current & future shells
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
 fi
+grep -qs 'brew shellenv' "$HOME/.zprofile" || {
+  if [ -x /opt/homebrew/bin/brew ]; then
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+  else
+    echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$HOME/.zprofile"
+  fi
+}
 
-# 2) Ensure brew’s zsh is an allowed login shell
+# 3) Ensure brew’s zsh is an allowed login shell
 BREW_ZSH="$(brew --prefix)/bin/zsh"
 if ! grep -qx "$BREW_ZSH" /etc/shells; then
   echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
 fi
 
-# 3) Install packages
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# 4) Install packages (from repo root)
 brew bundle --file="$DIR/brew/Brewfile.mac"
 
-# 4) Make zsh default (brew version)
+# 5) Make zsh default (brew version)
 chsh -s "$BREW_ZSH" "$USER" || true
 
-# 5) Symlink dotfiles if present
+# 6) Symlink dotfiles with stow (from repo root)
 if command -v stow >/dev/null 2>&1; then
-  ( cd "$(dirname "$0")" && stow -v zsh nvim git 2>/dev/null || true )
+  ( cd "$DIR" && stow -v zsh nvim git ) || true
 fi
 
-# 6) Neovim config: install or update (your fork)
+# 7) Neovim config: install or update (your fork)
 NVIM_CONFIG="$HOME/.config/nvim"
 if [ ! -d "$NVIM_CONFIG/.git" ]; then
-  mkdir -p "$HOME/.config"
-  # Use SSH if your Mac has a GitHub key; otherwise change to https://github.com/n45h4n/kickstart.nvim.git
-  git clone git@github.com:n45h4n/kickstart.nvim.git "$NVIM_CONFIG"
+  mkdir -p "${NVIM_CONFIG%/*}"
+  # Use HTTPS to work on brand‑new machines without SSH keys
+  git clone https://github.com/n45h4n/kickstart.nvim.git "$NVIM_CONFIG"
 else
   echo "🔄 Updating Kickstart.nvim config..."
-  git -C "$NVIM_CONFIG" pull --ff-only
+  git -C "$NVIM_CONFIG" pull --ff-only || git -C "$NVIM_CONFIG" pull
 fi
 
-# 7) Post-bundle extras
-"$(dirname "$0")/scripts/post-bundle-common.sh" || true
+# 8) Post-bundle extras
+"$DIR/scripts/post-bundle-common.sh" || true
 
-echo "✅ mac bootstrap complete. Open a new terminal window."
-
+echo "✅ mac bootstrap complete. Close & reopen your terminal."

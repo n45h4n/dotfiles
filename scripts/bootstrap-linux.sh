@@ -22,17 +22,29 @@ sudo apt-get update -y
 sudo apt-get install -y build-essential
 brew install gcc
 
-# 3) Ensure brew’s zsh is an allowed login shell
+# 3) Ensure brew’s zsh is an allowed login shell (idempotent)
 BREW_ZSH="$(brew --prefix)/bin/zsh"
-if ! grep -qx "$BREW_ZSH" /etc/shells; then
-  echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
-fi
+grep -qx "$BREW_ZSH" /etc/shells || echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
 
-# 4) Install packages (no --no-lock; path from repo root)
+# 4) Install packages (from repo root)
 brew bundle --file="$DIR/brew/Brewfile.linux"
 
-# 5) Make zsh default (brew version)
-chsh -s "$BREW_ZSH" "$USER" || sudo chsh -s "$BREW_ZSH" "$USER" || true
+# 5) Make zsh default (brew version) — idempotent + robust
+CURRENT_SHELL="$(getent passwd "$USER" | cut -d: -f7 2>/dev/null || true)"
+if [ -z "${CURRENT_SHELL:-}" ]; then
+  CURRENT_SHELL="$(grep "^$USER:" /etc/passwd | cut -d: -f7 || true)"
+fi
+if [ "$CURRENT_SHELL" != "$BREW_ZSH" ]; then
+  chsh -s "$BREW_ZSH" "$USER" || sudo chsh -s "$BREW_ZSH" "$USER" || true
+fi
+
+# 5b) Safety net: if bash starts interactively, jump to zsh
+if ! grep -qs 'exec zsh -l' "$HOME/.bashrc"; then
+  cat >> "$HOME/.bashrc" <<'EOF'
+# If an interactive bash shell starts, immediately hop into zsh
+case $- in *i*) command -v zsh >/dev/null 2>&1 && exec zsh -l ;; esac
+EOF
+fi
 
 # 6) Symlink dotfiles with stow (run from repo root)
 if command -v stow >/dev/null 2>&1; then
@@ -54,4 +66,4 @@ fi
 "$DIR/scripts/post-bundle-common.sh" || true
 
 echo "✅ Linux/WSL bootstrap complete."
-echo "👉 Close all WSL terminals, then in PowerShell run:  wsl --shutdown"
+echo "👉 In PowerShell, run:  wsl --shutdown"

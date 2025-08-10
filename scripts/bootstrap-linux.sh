@@ -25,7 +25,8 @@ if ! grep -qx "$BREW_ZSH" /etc/shells; then
 fi
 
 # 4) Install packages
-brew bundle --file="$(dirname "$0")/brew/Brewfile.linux" --no-lock
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+brew bundle --file="$DIR/brew/Brewfile.linux"
 
 # 5) Make zsh default (brew version)
 chsh -s "$BREW_ZSH" "$USER" || sudo chsh -s "$BREW_ZSH" "$USER" || true
@@ -47,4 +48,3 @@ fi
 "$(dirname "$0")/scripts/post-bundle-common.sh" || true
 
 echo "✅ Linux/WSL bootstrap complete. Close & reopen your WSL session."
-

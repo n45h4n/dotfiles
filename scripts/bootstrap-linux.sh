@@ -33,10 +33,14 @@ chsh -s "$BREW_ZSH" "$USER" || sudo chsh -s "$BREW_ZSH" "$USER" || true
 # 6) Symlink dotfiles
 ( cd "$(dirname "$0")" && stow -v zsh nvim git 2>/dev/null || true )
 
-# 7) Neovim config: clone if missing (your fork)
-if [ ! -d "$HOME/.config/nvim" ]; then
+# 7) Neovim config: install or update (your fork)
+NVIM_CONFIG="$HOME/.config/nvim"
+if [ ! -d "$NVIM_CONFIG" ]; then
   mkdir -p "$HOME/.config"
-  git clone https://github.com/n45h4n/kickstart.nvim.git "$HOME/.config/nvim"
+  git clone git@github.com:n45h4n/kickstart.nvim.git "$NVIM_CONFIG"
+else
+  echo "🔄 Updating Kickstart.nvim config..."
+  git -C "$NVIM_CONFIG" pull
 fi
 
 # 8) Post-bundle extras

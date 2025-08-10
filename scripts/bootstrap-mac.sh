@@ -29,10 +29,15 @@ if command -v stow >/dev/null 2>&1; then
   ( cd "$(dirname "$0")" && stow -v zsh nvim git 2>/dev/null || true )
 fi
 
-# 6) Neovim config: clone if missing (your fork)
-if [ ! -d "$HOME/.config/nvim" ]; then
+# 6) Neovim config: install or update (your fork)
+NVIM_CONFIG="$HOME/.config/nvim"
+if [ ! -d "$NVIM_CONFIG/.git" ]; then
   mkdir -p "$HOME/.config"
-  git clone https://github.com/n45h4n/kickstart.nvim.git "$HOME/.config/nvim"
+  # Use SSH if your Mac has a GitHub key; otherwise change to https://github.com/n45h4n/kickstart.nvim.git
+  git clone git@github.com:n45h4n/kickstart.nvim.git "$NVIM_CONFIG"
+else
+  echo "🔄 Updating Kickstart.nvim config..."
+  git -C "$NVIM_CONFIG" pull --ff-only
 fi
 
 # 7) Post-bundle extras

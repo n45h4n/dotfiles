@@ -29,17 +29,24 @@ grep -qs 'brew shellenv' "$HOME/.zprofile" || {
   fi
 }
 
-# 3) Ensure brew’s zsh is an allowed login shell
+# 3) Ensure brew’s zsh is an allowed login shell (idempotent)
 BREW_ZSH="$(brew --prefix)/bin/zsh"
-if ! grep -qx "$BREW_ZSH" /etc/shells; then
-  echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
-fi
+grep -qx "$BREW_ZSH" /etc/shells || echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
 
 # 4) Install packages (from repo root)
 brew bundle --file="$DIR/brew/Brewfile.mac"
 
-# 5) Make zsh default (brew version)
-chsh -s "$BREW_ZSH" "$USER" || true
+# 5) Make zsh default (brew version) — idempotent
+CURRENT_SHELL="$(dscl . -read /Users/"$USER" UserShell 2>/dev/null | awk '{print $2}')"
+[ "${CURRENT_SHELL:-}" = "$BREW_ZSH" ] || chsh -s "$BREW_ZSH" "$USER" || true
+
+# 5b) Safety net: if bash starts interactively, jump to zsh (harmless on mac)
+if ! grep -qs 'exec zsh -l' "$HOME/.bashrc"; then
+  cat >> "$HOME/.bashrc" <<'EOF'
+# If an interactive bash shell starts, immediately hop into zsh
+case $- in *i*) command -v zsh >/dev/null 2>&1 && exec zsh -l ;; esac
+EOF
+fi
 
 # 6) Symlink dotfiles with stow (from repo root)
 if command -v stow >/dev/null 2>&1; then

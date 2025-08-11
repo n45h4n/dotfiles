@@ -133,6 +133,11 @@ Look for:
 LAYOUT DIR: /home/nasri/.config/zellij/layouts
 ```
 
+Create it if it doesn't exist
+```bash
+mkdir ~/.config/zellij/layouts
+```
+
 📜 Listing available layouts
 
 ```bash
@@ -141,7 +146,7 @@ ls ~/.config/zellij/layouts
 
 If it’s empty, you can create your own layout files there.
 
-IDE custom layout
+ide.kdl
 
 ```kdl
 layout {
@@ -174,6 +179,67 @@ layout {
 ▶ Using a layout
 
 ```bash
-zellij -l name
+zellij -l name_of_file
+```
+---
+## SSH key for GitHub
+
+1️⃣ Check for existing keys
+
+```bash
+ls -al ~/.ssh
+```
+
+If you see files like id_ed25519 and id_ed25519.pub, you might already have a key.
+If not, continue.
+
+2️⃣ Generate a new SSH key
+GitHub recommends ed25519:
+
+```bash
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
+
+Replace your_email@example.com with your GitHub email.
+
+When prompted for a file location, press Enter to accept the default (~/.ssh/id_ed25519).
+
+When prompted for a passphrase, you can press Enter for none (or set one for extra security).
+
+3️⃣ Start the SSH agent
+
+```bash
+eval "$(ssh-agent -s)"
+```
+
+4️⃣ Add your key to the agent
+
+```bash
+ssh-add ~/.ssh/id_ed25519
+```
+
+5️⃣ Copy the public key
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+Copy the whole output (starts with ssh-ed25519).
+
+6️⃣ Add it to GitHub
+1. Go to GitHub → Settings → SSH and GPG keys → New SSH key.
+2. Title: anything (e.g., “WSL ThinkPad”).
+3. Paste the key.
+4. Save.
+
+7️⃣ Test connection
+
+```bash
+ssh -T git@github.com
+```
+
+If successful, you’ll see:
+
+```vbnet
+Hi username! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 ---

@@ -179,18 +179,19 @@ _auto_update_nvim() {
   : > "$NVIM_STAMP"
 }
 
-# Install/upgrade tools from the right Brewfile (mac vs linux)
+# Install/upgrade tools from Brewfiles (common + per-OS)
 _bundle_brew() {
   command -v brew >/dev/null 2>&1 || return 0
-  local f
+  local root="${DOTFILES_DIR:-$HOME/dotfiles}"
+  local common="$root/brew/Brewfile.common"
+  local osfile
   case "$(uname -s)" in
-    Darwin) f="$DOTFILES_DIR/brew/Brewfile.mac" ;;
-    Linux)  f="$DOTFILES_DIR/brew/Brewfile.linux" ;;
+    Darwin) osfile="$root/brew/Brewfile.mac" ;;
+    Linux)  osfile="$root/brew/Brewfile.linux" ;;
     *) return 0 ;;
   esac
-  [[ -f "$f" ]] || return 0
-  print -P "%F{yellow}📦 brew bundle from: $f%f"
-  brew bundle --file="$f" || true
+  [ -f "$common" ] && { print -P "%F{yellow}📦 brew bundle (common)%f"; brew bundle --file="$common" || true; }
+  [ -f "$osfile" ] && { print -P "%F{yellow}📦 brew bundle ($(uname -s))%f"; brew bundle --file="$osfile" || true; }
 }
 
 # Manual trigger

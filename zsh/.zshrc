@@ -180,12 +180,13 @@ _auto_update_nvim() {
 }
 
 # Manual trigger
-update-all() {
+update_all() {
   print -P "%F{yellow}↻ Updating dotfiles and Kickstart.nvim...%f"
   _auto_update_dotfiles
   _auto_update_nvim
   print -P "%F{green}✅ Update check complete%f"
 }
+alias update-all=update_all
 
 # Auto run once/day in background
 {

@@ -88,19 +88,14 @@ fi
 NVIM_CONFIG="$HOME/.config/nvim"
 if [ ! -d "$NVIM_CONFIG/.git" ]; then
   mkdir -p "${NVIM_CONFIG%/*}"
-  # Use HTTPS to work on brand‑new machines without SSH keys
+  # Use HTTPS to work on brand-new machines without SSH keys
   git clone https://github.com/n45h4n/kickstart.nvim.git "$NVIM_CONFIG"
 else
   echo "🔄 Updating Kickstart.nvim config..."
   git -C "$NVIM_CONFIG" pull --ff-only || git -C "$NVIM_CONFIG" pull
 fi
 
-# 8) Optional: FZF keybindings/completions (idempotent)
-if [ -x "$BREW_PREFIX/opt/fzf/install" ]; then
-  yes | "$BREW_PREFIX/opt/fzf/install" --key-bindings --completion --no-update-rc
-fi
-
-# 9) Post-bundle extras
+# 8) Post-bundle extras (fzf, pipx CLIs, git-lfs, ngrok for Linux handled there)
 "$DIR/scripts/post-bundle-common.sh" || true
 
 echo "✅ mac bootstrap complete. Close & reopen your terminal."

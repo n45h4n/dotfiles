@@ -45,6 +45,8 @@ case $- in *i*) command -v zsh >/dev/null 2>&1 && exec zsh -l ;; esac
 EOF
 fi
 
+# 6) Symlink dotfiles with stow (run from repo root)
+
 # Backup clashing files so stow can link cleanly
 for f in "$HOME/.zshrc" "$HOME/.zprofile"; do
   if [ -e "$f" ] && [ ! -L "$f" ]; then
@@ -54,7 +56,6 @@ for f in "$HOME/.zshrc" "$HOME/.zprofile"; do
   fi
 done
 
-# 6) Symlink dotfiles with stow (run from repo root) — no 'nvim' here
 if command -v stow >/dev/null 2>&1; then
   ( cd "$DIR" && stow -v zsh git ) || true
 fi

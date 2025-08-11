@@ -25,6 +25,7 @@ BREW_ZSH="$(brew --prefix)/bin/zsh"
 grep -qx "$BREW_ZSH" /etc/shells || echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
 
 # 4) Install packages (from repo root)
+brew bundle --file="$DIR/brew/Brewfile.common"
 brew bundle --file="$DIR/brew/Brewfile.linux"
 
 # 5) Make zsh default (brew version) — idempotent + robust

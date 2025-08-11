@@ -20,3 +20,8 @@ fi
 
 # --- Rust (cargo) ---
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+# Ensure interactive zsh loads ~/.zshrc (covers WSL/login edge cases)
+if [[ -o interactive ]]; then
+  [[ -r "$HOME/.zshrc" ]] && source "$HOME/.zshrc"
+fi

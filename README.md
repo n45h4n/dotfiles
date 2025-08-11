@@ -273,11 +273,7 @@ gcloud config set run/region us-central1
 gcloud auth list
 ```
 
-You should see:
-
-```nginx
-Credentialed Accounts
-ACTIVE  ACCOUNT
-*       youremail@example.com
+```bash
+gcloud projects list
 ```
 ---

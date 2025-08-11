@@ -1,0 +1,7 @@
+# ~/.gitconfig
+[user]
+	name = n45h4n
+	email = n45r1.h4nd4l@gmail.com
+[core]
+	editor = nvim
+

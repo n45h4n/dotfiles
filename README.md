@@ -243,3 +243,41 @@ If successful, you’ll see:
 Hi username! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 ---
+## Google Cloud
+
+1️⃣ Authenticate
+```bash
+gcloud auth login
+```
+
+1. This will open your Windows default browser.
+2. Log in with the Google account that owns your project.
+3. Approve the permissions.
+
+2️⃣ Set your default project
+```bash
+gcloud config set project YOUR_PROJECT_ID
+```
+
+You can find YOUR_PROJECT_ID in the Google Cloud Console → Dashboard.
+
+3️⃣ (Optional) Set default region & service account
+
+```bash
+gcloud config set run/region us-central1
+```
+
+4️⃣ Verify
+
+```bash
+gcloud auth list
+```
+
+You should see:
+
+```nginx
+Credentialed Accounts
+ACTIVE  ACCOUNT
+*       youremail@example.com
+```
+---

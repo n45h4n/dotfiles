@@ -208,7 +208,7 @@ alias update-all=update_all
 {
   _should_run_now "$DOTFILES_STAMP" && _auto_update_dotfiles
   _should_run_now "$NVIM_STAMP"     && _auto_update_nvim
-} >/dev/null 2>&1 & disown
+} &>/dev/null &
 
 # ----------------------------------------
 # Welcome Message

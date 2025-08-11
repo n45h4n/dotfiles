@@ -52,11 +52,12 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 # menu selection
 zstyle ':completion:*' menu select
 
-# Load bash completion scripts if needed
-if [ -f /etc/bash_completion ]; then
-  autoload -Uz bashcompinit && bashcompinit
-  source /etc/bash_completion
-fi
+# Completion: use zsh's native system (already enabled with compinit above).
+# Do not source global bash-completion; it is a bash script and breaks in zsh.
+# If you ever need a specific bash completion, opt-in per command only.
+
+# fzf shell integration (installer skipped touching rc)
+[ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
 
 # ----------------------------------------
 # Aliases & Shortcuts

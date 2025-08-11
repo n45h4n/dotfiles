@@ -1,55 +1,5 @@
-# --- shell & core ---
-brew "zsh"
-brew "git"
-brew "neovim"
-brew "stow"
-brew "curl"
-brew "wget"
-brew "jq"
-brew "ripgrep"          # apt: ripgrep
-brew "fd"               # apt name was fd-find
-brew "fzf"
-brew "tmux"
-brew "zellij"
-brew "lazygit"
-brew "ranger"
-brew "tree"
-brew "eza"              # modern ls replacement
-brew "tldr"
+# Linux-only extras
 brew "xclip"
-brew "htop"
-brew "the_silver_searcher"
-brew "coreutils"
-brew "gnu-sed"
-brew "openssl@3"
-brew "zip"
-brew "unzip"
-brew "rsync"
-brew "git-lfs"
-brew "gh"
+brew "go"                 # keep here; optional on mac
 
-# --- build toolchain ---
-brew "gcc"
-brew "make"
-brew "pkg-config"
-brew "cmake"
-brew "ninja"
-
-# --- languages & runtimes ---
-brew "python@3.12"
-brew "pipx"
-brew "uv"
-brew "node"
-brew "go"
-
-# --- databases / clients ---
-brew "sqlite"
-brew "mysql-client"
-
-# --- cloud / misc ---
-# (ngrok is handled in post-bundle-common.sh on Linux)
-brew "ffmpeg"
-brew "rclone"
-
-# --- Neovim LSP helpers ---
-brew "lua-language-server"
+# ngrok is handled by scripts/post-bundle-common.sh on Linux

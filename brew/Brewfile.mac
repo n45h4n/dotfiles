@@ -13,7 +13,7 @@ brew "jq"
 brew "ripgrep"
 brew "fd"
 brew "fzf"
-brew "tmux"
+brew "zellij"
 brew "ranger"
 brew "tree"
 brew "eza"              # modern ls replacement

@@ -110,3 +110,46 @@ This pulls the latest changes for both:
 * Kickstart.nvim (fast-forward only)
 
 ---
+
+## Zellij config
+```bash
+zellij setup --dump-config > ~/.config/zellij/config.kdl
+```
+
+Then open it:
+
+```bash
+nvim ~/.config/zellij/config.kdl
+```
+
+📂 How to see your layout directory
+
+```bash
+zellij setup --check
+```
+
+Look for:
+```bash
+LAYOUT DIR: /home/nasri/.config/zellij/layouts
+```
+
+📜 Listing available layouts
+
+```bash
+ls ~/.config/zellij/layouts
+```
+
+If it’s empty, you can create your own layout files there.
+
+IDE custom layout
+
+```kdl
+
+```
+
+▶ Using a layout
+
+```bash
+zellij -l name
+```
+---

@@ -1,14 +1,29 @@
 tap "homebrew/cask"
+tap "homebrew/cask-fonts"
 
-# mac-only extras (GUI/binary casks etc.)
-cask "ngrok"
+# --- mac-only extras ---
+cask "ngrok"                           # Matches Linux ngrok (cask instead of apt)
+# cask "iterm2"                           # GUI terminal
+# cask "raycast"                          # Spotlight alternative
+# cask "rectangle"                        # Window management
+# cask "monitorcontrol"                   # External display brightness/volume
+# cask "keepingyouawake"                  # Prevent system sleep
+# cask "stats"                            # Menu bar system monitor
 
-# Optional GUI casks (uncomment if you want them)
-# cask "iterm2"
-# cask "raycast"
-# cask "rectangle"
-# tap "homebrew/cask-fonts"
-# cask "font-jetbrains-mono-nerd-font"
+# --- Fonts ---
+# cask "font-jetbrains-mono-nerd-font"    # Matches terminal font setup
 
-# If you want Go on mac too, add:
+# --- Browsers & editors ---
+# cask "google-chrome"
+# cask "visual-studio-code"
+
+# --- Optional communication tools ---
+# cask "slack"
+# cask "zoom"
+
+# --- Optional developer GUIs ---
+# cask "postman"
+# cask "docker"
+
+# If you want Go on mac too, uncomment:
 # brew "go"

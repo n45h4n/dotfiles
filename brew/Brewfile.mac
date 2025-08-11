@@ -1,64 +1,14 @@
-# Taps
 tap "homebrew/cask"
-# tap "homebrew/cask-fonts"   # uncomment if you want Nerd Fonts via cask
 
-# --- shell & core ---
-brew "zsh"
-brew "git"
-brew "neovim"
-brew "stow"
-brew "curl"
-brew "wget"
-brew "jq"
-brew "ripgrep"
-brew "fd"
-brew "fzf"
-brew "zellij"
-brew "ranger"
-brew "tree"
-brew "eza"              # modern ls replacement
-brew "tldr"
-brew "htop"
-brew "the_silver_searcher"
-brew "coreutils"
-brew "gnu-sed"
-brew "openssl@3"
-brew "zip"
-brew "unzip"
-brew "rsync"
-brew "git-lfs"
-brew "gh"
-brew "lazygit"
-
-# --- build toolchain ---
-brew "gcc"
-brew "make"
-brew "pkg-config"
-brew "cmake"
-brew "ninja"
-
-# --- languages & runtimes ---
-brew "python@3.12"
-brew "pipx"
-brew "uv"
-brew "node"
-# brew "go"               # uncomment if you want Go on mac too
-
-# --- databases / clients ---
-brew "sqlite"
-brew "mysql-client"
-
-# --- cloud / misc ---
+# mac-only extras (GUI/binary casks etc.)
 cask "ngrok"
-brew "ffmpeg"
-brew "rclone"
 
-# --- Neovim LSP helpers ---
-brew "lua-language-server"
-
-# --- GUI apps (optional casks) ---
+# Optional GUI casks (uncomment if you want them)
 # cask "iterm2"
 # cask "raycast"
 # cask "rectangle"
+# tap "homebrew/cask-fonts"
 # cask "font-jetbrains-mono-nerd-font"
 
+# If you want Go on mac too, add:
+# brew "go"

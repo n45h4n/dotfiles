@@ -105,4 +105,9 @@ fi
 # 8) Post-bundle extras (fzf, pipx CLIs, git-lfs, ngrok for Linux handled there)
 "$DIR/scripts/post-bundle-common.sh" || true
 
+# Re-stow zsh at the very end to fix any files tools may have recreated
+if command -v stow >/dev/null 2>&1; then
+  ( cd "$DIR" && stow -v zsh ) || true
+fi
+
 echo "✅ mac bootstrap complete. Close & reopen your terminal."

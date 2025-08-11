@@ -239,7 +239,7 @@ ssh -T git@github.com
 
 If successful, you’ll see:
 
-```bash
+```txt
 Hi username! You've successfully authenticated, but GitHub does not provide shell access.
 ```
 ---

@@ -1,5 +1,5 @@
 # --- PATH & editors ---
-export PATH="/usr/local/bin:$PATH"
+export PATH="$HOME/.local/bin:/usr/local/bin:$PATH"  # pipx + common bin
 export EDITOR="nvim"
 export VISUAL="nvim"
 
@@ -20,4 +20,3 @@ fi
 
 # --- Rust (cargo) ---
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
-

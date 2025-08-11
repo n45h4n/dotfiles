@@ -3,7 +3,7 @@ tap "homebrew/cask-fonts"
 
 # --- mac-only extras ---
 cask "ngrok"                           # Matches Linux ngrok (cask instead of apt)
-# cask "iterm2"                           # GUI terminal
+cask "iterm2"                           # GUI terminal
 # cask "raycast"                          # Spotlight alternative
 # cask "rectangle"                        # Window management
 # cask "monitorcontrol"                   # External display brightness/volume

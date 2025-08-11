@@ -7,8 +7,6 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # 0) Install Homebrew on Linux if missing
 if ! command -v brew >/dev/null 2>&1; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-  # Put brew on PATH for future shells (avoid duplicate lines)
   grep -qs 'brew shellenv' "$HOME/.profile"  || echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "$HOME/.profile"
   grep -qs 'brew shellenv' "$HOME/.zprofile" || echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
   grep -qs 'brew shellenv' "$HOME/.zshrc"    || echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> "$HOME/.zshrc"
@@ -46,16 +44,15 @@ case $- in *i*) command -v zsh >/dev/null 2>&1 && exec zsh -l ;; esac
 EOF
 fi
 
-# 6) Symlink dotfiles with stow (run from repo root)
+# 6) Symlink dotfiles with stow (run from repo root) — no 'nvim' here
 if command -v stow >/dev/null 2>&1; then
-  ( cd "$DIR" && stow -v zsh nvim git ) || true
+  ( cd "$DIR" && stow -v zsh git ) || true
 fi
 
 # 7) Neovim config: install or update (your fork)
 NVIM_CONFIG="$HOME/.config/nvim"
 if [ ! -d "$NVIM_CONFIG/.git" ]; then
   mkdir -p "$HOME/.config"
-  # Use HTTPS to avoid requiring SSH keys on fresh machines
   git clone https://github.com/n45h4n/kickstart.nvim.git "$NVIM_CONFIG"
 else
   echo "🔄 Updating Kickstart.nvim config..."

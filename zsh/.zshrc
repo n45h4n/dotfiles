@@ -206,9 +206,11 @@ alias update-all=update_all
 
 # Auto run once/day in background
 {
-  _should_run_now "$DOTFILES_STAMP" && _auto_update_dotfiles
-  _should_run_now "$NVIM_STAMP"     && _auto_update_nvim
+  _should_run_now "$DOTFILES_STAMP" && _auto_update_dotfiles || true
+  _should_run_now "$NVIM_STAMP"     && _auto_update_nvim     || true
+  true
 } &>/dev/null &
+unsetopt localoptions
 
 # ----------------------------------------
 # Welcome Message

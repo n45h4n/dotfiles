@@ -50,7 +50,7 @@ fi
 
 # 6) Symlink dotfiles with stow (from repo root)
 if command -v stow >/dev/null 2>&1; then
-  ( cd "$DIR" && stow -v zsh nvim git ) || true
+  ( cd "$DIR" && stow -v zsh git ) || true
 fi
 
 # 7) Neovim config: install or update (your fork)

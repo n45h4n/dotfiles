@@ -1,22 +1,45 @@
+typeset -U path PATH fpath
+
 # ----------------------------------------
 # Appearance
 # ----------------------------------------
 
-# LS/grep colors (fallback if eza not available)
-export LS_COLORS='di=1;34:fi=0:ln=1;36:pi=1;33:so=1;35:bd=1;33:cd=1;33:or=1;31:mi=1;31:ex=1;32:*.sh=1;32'
-alias grep='grep --color=auto'
-alias diff='diff --color=auto'
+# helper: is this a GNU tool?
+_is_gnu() { "$1" --version 2>/dev/null | head -n1 | grep -qi 'gnu'; }
 
-# Prefer eza; otherwise colored ls
+# LS/grep colors (fallbacks if GNU/flags unavailable)
+# grep: GNU only → --color
+if _is_gnu grep; then
+  alias grep='grep --color=auto'
+fi
+
+# diff: GNU diffutils only → --color (BSD diff lacks it)
+if command -v gdiff >/dev/null 2>&1 || _is_gnu diff; then
+  # prefer gdiff if installed, otherwise diff (when GNU is first in PATH)
+  if command -v gdiff >/dev/null 2>&1; then
+    alias diff='gdiff --color=auto'
+  else
+    alias diff='diff --color=auto'
+  fi
+fi
+
+# Prefer eza; otherwise colored ls with GNU or BSD flags
 if command -v eza >/dev/null 2>&1; then
   alias ls='eza --icons'
   alias ll='eza -l --icons'
   alias la='eza -la --icons'
   alias lt='eza --tree --icons'
 else
-  alias ls='ls --color=auto'
-  alias ll='ls -lh --color=auto'
-  alias la='ls -lAh --color=auto'
+  if _is_gnu ls; then
+    alias ls='ls --color=auto'
+    alias ll='ls -lh --color=auto'
+    alias la='ls -lAh --color=auto'
+  else
+    # BSD ls on macOS
+    alias ls='ls -G'
+    alias ll='ls -lhG'
+    alias la='ls -lAhG'
+  fi
 fi
 
 # Color man pages
@@ -62,6 +85,7 @@ zstyle ':completion:*' menu select
 # ----------------------------------------
 # Aliases & Shortcuts
 # ----------------------------------------
+
 alias gs='git status'
 alias gd='git diff'
 alias gu='git pull'
@@ -90,6 +114,7 @@ alias venv='source .venv/bin/activate'
 # ----------------------------------------
 # Prompt (username@host cwd (gitbranch))
 # ----------------------------------------
+
 autoload -Uz vcs_info
 precmd() { vcs_info }
 zstyle ':vcs_info:git:*' formats ' (%b)'
@@ -100,6 +125,7 @@ PROMPT='%F{green}%n@%m%f %F{blue}%~%f${vcs_info_msg_0_} %# '
 # ----------------------------------------
 # Auto-update: dotfiles repo + Kickstart.nvim
 # ----------------------------------------
+
 # - Runs at most once per day (background)
 # - Dotfiles: pull --rebase (keeps your local edits)
 # - Kickstart.nvim: pull --ff-only (no local edits expected)
@@ -204,17 +230,23 @@ update_all() {
 }
 alias update-all=update_all
 
-# Auto run once/day in background
-{
-  _should_run_now "$DOTFILES_STAMP" && _auto_update_dotfiles || true
-  _should_run_now "$NVIM_STAMP"     && _auto_update_nvim     || true
-  true
-} &>/dev/null & disown
+# Auto run once/day in background (interactive TTYs only, single instance)
+if [[ -o interactive ]] && [[ -t 1 ]]; then
+  _AUTO_LOCK="${CACHE_DIR}/auto-update.lock"
+  if mkdir "$_AUTO_LOCK" 2>/dev/null; then
+    {
+      trap 'rmdir "$_AUTO_LOCK" 2>/dev/null || true' EXIT
+      _should_run_now "$DOTFILES_STAMP" && _auto_update_dotfiles || true
+      _should_run_now "$NVIM_STAMP"     && _auto_update_nvim     || true
+    } &>/dev/null & disown
+  fi
+fi
 unsetopt localoptions
 
 # ----------------------------------------
 # Welcome Message
 # ----------------------------------------
+
 # --- fallback Homebrew env if zprofile didn't run (non-login shells) ---
 if ! command -v brew >/dev/null 2>&1; then
   if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then

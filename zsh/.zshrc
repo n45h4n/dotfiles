@@ -198,7 +198,7 @@ _bundle_brew() {
 update_all() {
   print -P "%F{yellow}↻ Updating dotfiles, packages, and Kickstart.nvim...%f"
   _auto_update_dotfiles
-  _bundle_brew          # ← installs eza, zellij, etc. from your Brewfile
+  _bundle_brew
   _auto_update_nvim
   print -P "%F{green}✅ All up to date%f"
 }

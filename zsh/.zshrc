@@ -215,8 +215,6 @@ unsetopt localoptions
 # ----------------------------------------
 # Welcome Message
 # ----------------------------------------
-echo -e "\e[1;34mWelcome back, Nas! Today is $(date '+%A, %B %d')\e[0m"
-
 # --- fallback Homebrew env if zprofile didn't run (non-login shells) ---
 if ! command -v brew >/dev/null 2>&1; then
   if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then

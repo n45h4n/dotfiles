@@ -1,6 +1,3 @@
-tap "homebrew/cask"
-tap "homebrew/cask-fonts"
-
 # --- mac-only extras ---
 cask "ngrok"                           # Matches Linux ngrok (cask instead of apt)
 cask "iterm2"                           # GUI terminal

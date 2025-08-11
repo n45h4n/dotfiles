@@ -209,14 +209,12 @@ alias update-all=update_all
   _should_run_now "$DOTFILES_STAMP" && _auto_update_dotfiles || true
   _should_run_now "$NVIM_STAMP"     && _auto_update_nvim     || true
   true
-} &>/dev/null &
+} &>/dev/null & disown
 unsetopt localoptions
 
 # ----------------------------------------
 # Welcome Message
 # ----------------------------------------
-echo -e "\e[1;34mWelcome back, Nas! Today is $(date '+%A, %B %d')\e[0m"
-
 # --- fallback Homebrew env if zprofile didn't run (non-login shells) ---
 if ! command -v brew >/dev/null 2>&1; then
   if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then

@@ -1,0 +1,51 @@
+# --- shell & core ---
+brew "zsh"
+brew "git"
+brew "neovim"
+brew "stow"
+brew "curl"
+brew "wget"
+brew "jq"
+brew "ripgrep"
+brew "fd"
+brew "fzf"
+brew "zellij"            # unified: using zellij instead of tmux
+brew "lazygit"
+brew "ranger"
+brew "tree"
+brew "eza"               # modern ls replacement
+brew "tldr"
+brew "htop"
+brew "the_silver_searcher"
+brew "coreutils"
+brew "gnu-sed"
+brew "openssl@3"
+brew "zip"
+brew "unzip"
+brew "rsync"
+brew "git-lfs"
+brew "gh"
+
+# --- build toolchain ---
+brew "gcc"
+brew "make"
+brew "pkg-config"
+brew "cmake"
+brew "ninja"
+
+# --- languages & runtimes ---
+brew "python@3.12"
+brew "pipx"
+brew "uv"
+brew "node"
+
+# --- databases / clients ---
+brew "sqlite"
+brew "mysql-client"
+
+# --- media / misc ---
+brew "ffmpeg"
+brew "rclone"
+
+# --- Neovim LSP helpers ---
+brew "lua-language-server"

@@ -144,6 +144,30 @@ If it’s empty, you can create your own layout files there.
 IDE custom layout
 
 ```kdl
+layout {
+  default_tab_template {
+    pane size=1 borderless=true {
+      plugin location="zellij:tab-bar"
+    }
+    children
+    pane size=1 borderless=true {
+      plugin location="zellij:status-bar"
+    }
+  }
+
+  tab name="dev" {
+    pane command="ranger"
+  }
+
+  tab name="test" split_direction="vertical" {
+    pane                               // LEFT column
+
+    pane split_direction="horizontal" {  // RIGHT column split top & bottom
+      pane                              // top-right
+      pane                              // bottom-right
+    }
+  }
+}
 
 ```
 

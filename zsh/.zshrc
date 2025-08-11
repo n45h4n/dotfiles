@@ -1,4 +1,6 @@
+# Keep PATH/fpath unique and allow # comments in interactive shells
 typeset -U path PATH fpath
+setopt INTERACTIVE_COMMENTS
 
 # ----------------------------------------
 # Appearance

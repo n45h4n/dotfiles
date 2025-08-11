@@ -16,6 +16,7 @@ brew "fzf"
 brew "tmux"
 brew "ranger"
 brew "tree"
+brew "eza"              # modern ls replacement
 brew "tldr"
 brew "htop"
 brew "the_silver_searcher"

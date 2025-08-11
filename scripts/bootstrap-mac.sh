@@ -67,6 +67,13 @@ case $- in *i*) command -v zsh >/dev/null 2>&1 && exec zsh -l ;; esac
 EOF
 fi
 
+# Neutralize unsafe legacy ~/.zshenv that sources cargo unguarded
+if [[ -f "$HOME/.zshenv" ]] && grep -q '\. "\$HOME/.cargo/env"' "$HOME/.zshenv"; then
+  ts=$(date +%Y%m%d-%H%M%S)
+  mkdir -p "$HOME/.dotfiles-backup/$ts"
+  mv -v "$HOME/.zshenv" "$HOME/.dotfiles-backup/$ts/.zshenv"
+fi
+
 # 6) Backup clashing files so stow can link cleanly
 for f in "$HOME/.zshrc" "$HOME/.zprofile"; do
   if [ -e "$f" ] && [ ! -L "$f" ]; then

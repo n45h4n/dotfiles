@@ -47,6 +47,9 @@ fi
 
 # 6) Symlink dotfiles with stow (run from repo root)
 
+# Ensure stow is installed before using it
+command -v stow >/dev/null 2>&1 || brew install stow || true
+
 # Backup clashing files so stow can link cleanly
 for f in "$HOME/.zshrc" "$HOME/.zprofile"; do
   if [ -e "$f" ] && [ ! -L "$f" ]; then

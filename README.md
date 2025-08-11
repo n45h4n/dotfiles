@@ -42,7 +42,7 @@ sudo apt update && sudo apt install -y git
 ```bash
 git clone https://github.com/n45h4n/dotfiles.git
 cd dotfiles
-./scripts/bootstrap-linux.sh
+./scripts/bootstrap.sh
 ```
 
 ---
@@ -70,7 +70,7 @@ In **Terminal**:
 ```bash
 git clone https://github.com/n45h4n/dotfiles.git
 cd dotfiles
-./scripts/bootstrap-mac.sh
+./scripts/bootstrap.sh
 ```
 
 ---

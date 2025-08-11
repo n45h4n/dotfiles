@@ -179,12 +179,27 @@ _auto_update_nvim() {
   : > "$NVIM_STAMP"
 }
 
+# Install/upgrade tools from the right Brewfile (mac vs linux)
+_bundle_brew() {
+  command -v brew >/dev/null 2>&1 || return 0
+  local f
+  case "$(uname -s)" in
+    Darwin) f="$DOTFILES_DIR/brew/Brewfile.mac" ;;
+    Linux)  f="$DOTFILES_DIR/brew/Brewfile.linux" ;;
+    *) return 0 ;;
+  esac
+  [[ -f "$f" ]] || return 0
+  print -P "%F{yellow}📦 brew bundle from: $f%f"
+  brew bundle --file="$f" || true
+}
+
 # Manual trigger
 update_all() {
-  print -P "%F{yellow}↻ Updating dotfiles and Kickstart.nvim...%f"
+  print -P "%F{yellow}↻ Updating dotfiles, packages, and Kickstart.nvim...%f"
   _auto_update_dotfiles
+  _bundle_brew          # ← installs eza, zellij, etc. from your Brewfile
   _auto_update_nvim
-  print -P "%F{green}✅ Update check complete%f"
+  print -P "%F{green}✅ All up to date%f"
 }
 alias update-all=update_all
 

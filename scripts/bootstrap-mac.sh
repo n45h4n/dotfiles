@@ -12,20 +12,36 @@ fi
 
 # 1) Install Homebrew if missing
 if ! command -v brew >/dev/null 2>&1; then
+  echo "🍺 Installing Homebrew…"
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
 # 2) Put brew on PATH for current & future shells
 if [ -x /opt/homebrew/bin/brew ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
+  BREW_PREFIX="/opt/homebrew"
 elif [ -x /usr/local/bin/brew ]; then
   eval "$(/usr/local/bin/brew shellenv)"
+  BREW_PREFIX="/usr/local"
+else
+  echo "❌ Homebrew not found after install attempt."
+  exit 1
 fi
+
+# Persist shellenv in login shells
 grep -qs 'brew shellenv' "$HOME/.zprofile" || {
   if [ -x /opt/homebrew/bin/brew ]; then
     echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
   else
     echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$HOME/.zprofile"
+  fi
+}
+# Optional: some terminals start non-login interactive shells
+grep -qs 'brew shellenv' "$HOME/.zshrc" || {
+  if [ -x /opt/homebrew/bin/brew ]; then
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zshrc"
+  else
+    echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$HOME/.zshrc"
   fi
 }
 
@@ -37,9 +53,11 @@ grep -qx "$BREW_ZSH" /etc/shells || echo "$BREW_ZSH" | sudo tee -a /etc/shells >
 brew bundle --file="$DIR/brew/Brewfile.common"
 brew bundle --file="$DIR/brew/Brewfile.mac"
 
-# 5) Make zsh default (brew version) — idempotent
+# 5) Make zsh default (brew version) — idempotent + robust
 CURRENT_SHELL="$(dscl . -read /Users/"$USER" UserShell 2>/dev/null | awk '{print $2}')"
-[ "${CURRENT_SHELL:-}" = "$BREW_ZSH" ] || chsh -s "$BREW_ZSH" "$USER" || true
+if [ "${CURRENT_SHELL:-}" != "$BREW_ZSH" ]; then
+  chsh -s "$BREW_ZSH" "$USER" || sudo chsh -s "$BREW_ZSH" "$USER" || true
+fi
 
 # 5b) Safety net: if bash starts interactively, jump to zsh (harmless on mac)
 if ! grep -qs 'exec zsh -l' "$HOME/.bashrc"; then
@@ -58,6 +76,9 @@ for f in "$HOME/.zshrc" "$HOME/.zprofile"; do
   fi
 done
 
+# Ensure stow exists before using it
+command -v stow >/dev/null 2>&1 || brew install stow || true
+
 # Symlink dotfiles with stow (from repo root)
 if command -v stow >/dev/null 2>&1; then
   ( cd "$DIR" && stow -v zsh git ) || true
@@ -74,7 +95,12 @@ else
   git -C "$NVIM_CONFIG" pull --ff-only || git -C "$NVIM_CONFIG" pull
 fi
 
-# 8) Post-bundle extras
+# 8) Optional: FZF keybindings/completions (idempotent)
+if [ -x "$BREW_PREFIX/opt/fzf/install" ]; then
+  yes | "$BREW_PREFIX/opt/fzf/install" --key-bindings --completion --no-update-rc
+fi
+
+# 9) Post-bundle extras
 "$DIR/scripts/post-bundle-common.sh" || true
 
 echo "✅ mac bootstrap complete. Close & reopen your terminal."

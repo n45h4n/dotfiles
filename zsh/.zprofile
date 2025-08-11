@@ -18,10 +18,28 @@ elif [ -x /usr/local/bin/brew ]; then
   eval "$(/usr/local/bin/brew shellenv)"
 fi
 
+# --- macOS: prioritize GNU tools for parity with Linux ---
+# (safe no-ops on Linux/Intel if dirs don't exist)
+if [[ -d /opt/homebrew ]]; then
+  path=(
+    /opt/homebrew/opt/coreutils/libexec/gnubin
+    /opt/homebrew/opt/gnu-sed/libexec/gnubin
+    /opt/homebrew/opt/findutils/libexec/gnubin
+    $path
+  )
+elif [[ -d /usr/local/opt/coreutils/libexec/gnubin ]]; then
+  path=(
+    /usr/local/opt/coreutils/libexec/gnubin
+    /usr/local/opt/gnu-sed/libexec/gnubin
+    /usr/local/opt/findutils/libexec/gnubin
+    $path
+  )
+fi
+
 # --- Rust (cargo) ---
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
-# Ensure interactive zsh loads ~/.zshrc (covers WSL/login edge cases)
+# Ensure interactive zsh loads ~/.zshrc (covers rare login/WSL edge cases)
 if [[ -o interactive ]]; then
   [[ -r "$HOME/.zshrc" ]] && source "$HOME/.zshrc"
 fi

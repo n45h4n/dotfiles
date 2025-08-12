@@ -26,7 +26,10 @@ brew install gcc git stow >/dev/null || true
 
 # 3) Ensure vendored forks (submodules) are present
 echo "🔁 Initializing submodules (OMZ + Kickstart)…"
-git -C "$DIR" submodule update --init --recursive
+if [ -d "$DIR/.git" ]; then
+	git -C "$DIR" submodule sync --recursive
+	git -C "$DIR" submodule update --init --recursive
+fi
 
 # 4) Ensure OMZ custom dir exists in your repo (used by $ZSH_CUSTOM)
 mkdir -p "$DIR/omz-custom/plugins" "$DIR/omz-custom/themes"
@@ -38,8 +41,8 @@ if [ -x "$BREW_ZSH" ]; then
 fi
 
 # 6) Install packages from your Brewfiles
-[ -f "$DIR/brew/Brewfile.common" ] && brew bundle --file="$DIR/brew/Brewfile.common" || true
-[ -f "$DIR/brew/Brewfile.linux" ] && brew bundle --file="$DIR/brew/Brewfile.linux" || true
+[ -f "$DIR/brew/Brewfile.common" ] && brew bundle --file="$DIR/brew/Brewfile.common" >/dev/null || true
+[ -f "$DIR/brew/Brewfile.linux" ] && brew bundle --file="$DIR/brew/Brewfile.linux" >/dev/null || true
 
 # 7) Make brew zsh default (robust)
 CURRENT_SHELL="$(getent passwd "$USER" | cut -d: -f7 2>/dev/null || true)"
@@ -75,7 +78,8 @@ backup_if_real "$HOME/.config/nvim"
 backup_if_real "$HOME/.config/zellij"
 
 # 9) Stow your dotfiles (adjust package list as needed)
-(cd "$DIR" && stow -v zsh git) || true
+(cd "$DIR" && stow -v zsh 2>/dev/null || true)
+(cd "$DIR" && stow -v git 2>/dev/null || true)
 
 # 10) Neovim: point to your vendored Kickstart fork (no cloning)
 mkdir -p "$HOME/.config"
@@ -83,6 +87,11 @@ ln -snf "$DIR/vendor/kickstart.nvim" "$HOME/.config/nvim"
 
 # 11) Zellij config (if you keep one in the repo)
 [ -d "$DIR/config/zellij" ] && ln -snf "$DIR/config/zellij" "$HOME/.config/zellij"
+
+# 11.5) Oh My Zsh: use your vendored fork
+if [ -d "$DIR/vendor/ohmyzsh" ]; then
+	ln -snf "$DIR/vendor/ohmyzsh" "$HOME/.oh-my-zsh"
+fi
 
 # 12) Post-bundle extras (optional script)
 [ -x "$DIR/scripts/post-bundle-common.sh" ] && "$DIR/scripts/post-bundle-common.sh" || true

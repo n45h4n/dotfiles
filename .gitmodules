@@ -1,6 +1,6 @@
 [submodule "vendor/ohmyzsh"]
 	path = vendor/ohmyzsh
-	url = https://github.com/n45h4n/ohmyzsh.git
+	url = git@github.com:n45h4n/ohmyzsh.git
 [submodule "vendor/kickstart.nvim"]
 	path = vendor/kickstart.nvim
-	url = https://github.com/n45h4n/kickstart.nvim.git
+	url = git@github.com:n45h4n/kickstart.nvim.git

@@ -40,7 +40,7 @@ sudo apt update && sudo apt install -y git
 ### 3. Clone & Bootstrap
 
 ```bash
-git clone https://github.com/n45h4n/dotfiles.git
+git clone --recurse-submodules https://github.com/n45h4n/dotfiles.git ~/dotfiles
 cd dotfiles
 ./scripts/bootstrap.sh
 ```
@@ -68,7 +68,7 @@ Reopen Ubuntu — you’ll land in zsh with everything set up.
 In **Terminal**:
 
 ```bash
-git clone https://github.com/n45h4n/dotfiles.git
+git clone --recurse-submodules https://github.com/n45h4n/dotfiles.git ~/dotfiles
 cd dotfiles
 ./scripts/bootstrap.sh
 ```

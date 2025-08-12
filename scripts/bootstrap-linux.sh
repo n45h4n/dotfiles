@@ -11,8 +11,17 @@ if ! command -v brew >/dev/null 2>&1; then
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 	grep -qs 'brew shellenv' "$HOME/.profile" || echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >>"$HOME/.profile"
 	grep -qs 'brew shellenv' "$HOME/.zprofile" || echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
-	grep -qs 'brew shellenv' "$HOME/.zshrc" || echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >>"$HOME/.zshrc"
 fi
+
+# Ensure ZDOTDIR points to $HOME so Brew zsh reads ~/.zshrc, ~/.zprofile, etc.
+grep -qs 'export ZDOTDIR=$HOME' "$HOME/.zshenv" || echo 'export ZDOTDIR=$HOME' >>"$HOME/.zshenv"
+
+# Ensure .zprofile sources .zshrc for interactive login shells
+grep -qs 'source ~/.zshrc' "$HOME/.zprofile" || cat >>"$HOME/.zprofile" <<'EOF'
+if [[ -o interactive ]]; then
+  [[ -r ~/.zshrc ]] && source ~/.zshrc
+fi
+EOF
 
 # 1) PATH for current session
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"

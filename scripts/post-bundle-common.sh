@@ -62,17 +62,19 @@ if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release 2>/dev/nu
   if ! command -v ngrok >/dev/null 2>&1; then
     if command -v sudo >/dev/null 2>&1; then
       echo "Installing ngrok via apt…"
+      # Ensure tools needed for the keyring step exist
+      sudo apt-get update -y >/dev/null 2>&1 || true
+      sudo apt-get install -y curl gnupg ca-certificates >/dev/null 2>&1 || true
       # Prepare keyring
       sudo mkdir -p /etc/apt/keyrings
       curl -fsSL https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
         | sudo gpg --dearmor -o /etc/apt/keyrings/ngrok.gpg
       echo "deb [signed-by=/etc/apt/keyrings/ngrok.gpg] https://ngrok-agent.s3.amazonaws.com stable main" \
         | sudo tee /etc/apt/sources.list.d/ngrok.list >/dev/null
-      sudo apt update -y >/dev/null 2>&1 || true
-      sudo apt install -y ngrok >/dev/null 2>&1 || true
+      sudo apt-get update -y >/dev/null 2>&1 || true
+      sudo apt-get install -y ngrok >/dev/null 2>&1 || true
     else
       echo "⚠️  Skipping ngrok install (sudo not available). Install manually if needed." >&2
-    end
+    fi
   fi
 fi
-

@@ -261,3 +261,8 @@ if ! command -v brew >/dev/null 2>&1; then
   fi
 fi
 
+
+# --- Oh My Zsh (vendored via dotfiles) ---
+export ZSH="$HOME/.oh-my-zsh"
+export ZSH_CUSTOM="$HOME/dotfiles/omz-custom"
+source "$ZSH/oh-my-zsh.sh"

@@ -18,7 +18,7 @@ if ! command -v brew >/dev/null 2>&1; then
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-# 2) Put brew on PATH for current & future shells
+# 2) Put brew on PATH for this session
 if [ -x /opt/homebrew/bin/brew ]; then
 	eval "$(/opt/homebrew/bin/brew shellenv)"
 	BREW_PREFIX="/opt/homebrew"
@@ -30,19 +30,12 @@ else
 	exit 1
 fi
 
-# Persist brew shellenv
-grep -qs 'brew shellenv' "$HOME/.zprofile" || {
-	if [ -x /opt/homebrew/bin/brew ]; then
-		echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
-	else
-		echo 'eval "$(/usr/local/bin/brew shellenv)"' >>"$HOME/.zprofile"
-	fi
-}
+# (We DO NOT append to ~/.zprofile here; your repo's zsh/.zprofile will be stowed later)
 
 # 3) Make sure git + stow exist
 brew install git stow >/dev/null || true
 
-# 4) Pull submodules (your OMZ + Kickstart forks live inside the repo)
+# 4) Pull submodules (your OMZ + Kickstart live inside the repo)
 echo "🔁 Initializing submodules…"
 if [ -d "$DIR/.git" ]; then
 	git -C "$DIR" submodule sync --recursive
@@ -75,8 +68,9 @@ backup_if_real "$HOME/.config/zellij"
 [ -f "$DIR/brew/Brewfile.mac" ] && brew bundle --file="$DIR/brew/Brewfile.mac" >/dev/null || true
 
 # 8) Stow your packages (adjust to what you keep in the repo)
-(cd "$DIR" && stow -v zsh 2>/dev/null || true)
-(cd "$DIR" && stow -v git 2>/dev/null || true)
+#    This will create ~/.zshrc -> ~/dotfiles/zsh/.zshrc and ~/.zprofile -> ~/dotfiles/zsh/.zprofile
+(cd "$DIR" && stow -v zsh) || true
+(cd "$DIR" && stow -v git) || true
 
 # 9) Neovim: symlink to your vendored Kickstart fork
 mkdir -p "$HOME/.config"
@@ -85,17 +79,13 @@ ln -snf "$DIR/vendor/kickstart.nvim" "$HOME/.config/nvim"
 # 10) Zellij (if you keep a config)
 [ -d "$DIR/config/zellij" ] && ln -snf "$DIR/config/zellij" "$HOME/.config/zellij"
 
-# 10.5) Oh My Zsh: use your vendored fork
-if [ -d "$DIR/vendor/ohmyzsh" ]; then
-	ln -snf "$DIR/vendor/ohmyzsh" "$HOME/.oh-my-zsh"
-fi
+# 10.5) (REMOVED) Oh My Zsh symlink to ~/.oh-my-zsh — not needed anymore
+# Your .zshrc uses $HOME/dotfiles/vendor/ohmyzsh directly.
 
-# 11) Ensure ZSH & ZSH_CUSTOM are set by your zshrc (stowed from repo)
-# If your .zshrc doesn't have these, you can uncomment:
-# {
-#   echo 'export ZSH="$HOME/.oh-my-zsh"'
-#   echo 'export ZSH_CUSTOM="$HOME/dotfiles/omz-custom"'
-# } >> "$HOME/.zshrc"
+# 11) Ensure ~/.zshrc points to repo file (in case stow was skipped)
+if [ ! -L "$HOME/.zshrc" ] || [ "$(readlink "$HOME/.zshrc" 2>/dev/null || true)" != "$DIR/zsh/.zshrc" ]; then
+	ln -snf "$DIR/zsh/.zshrc" "$HOME/.zshrc"
+fi
 
 # 12) Use Homebrew zsh if available; whitelist and set as default
 BREW_ZSH="$(brew --prefix)/bin/zsh"
@@ -111,6 +101,6 @@ fi
 [ -x "$DIR/scripts/post-bundle-common.sh" ] && "$DIR/scripts/post-bundle-common.sh" || true
 
 # 14) Final restow (fix any files re-created by tools)
-(cd "$DIR" && stow -v zsh 2>/dev/null || true)
+(cd "$DIR" && stow -v zsh) || true
 
 echo "✅ mac bootstrap complete. Open a new terminal."

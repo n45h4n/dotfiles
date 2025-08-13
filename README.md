@@ -1,279 +1,317 @@
-# 🛠️ Dotfiles
+# 🛠️ Dotfiles (SSH-only)
 
-Personal dotfiles for my development environment using **zsh** on **WSL (Ubuntu)** and **macOS**.  
-Includes setup scripts, package installation via Homebrew, Neovim (Kickstart) configuration, and daily auto-updates.
+Personal dotfiles for **zsh** on **WSL (Ubuntu)** and **macOS**.
 
----
-
-## 🚀 Features
-- **Cross-platform:** Works on both macOS and WSL Ubuntu.
-- **Automated setup:** Installs and configures Homebrew, zsh, Neovim, dev tools, and dotfiles.
-- **Package management:** OS-specific `Brewfile` for reproducible installs.
-- **Neovim Kickstart fork:** Automatically installed/updated.
-- **Daily auto-update:** Pulls latest changes for dotfiles and Kickstart.
-- **Developer-friendly tools:** `fzf`, `zellij`, `tmux`, `lazygit`, Python/Node/Go, MySQL client, ngrok, ffmpeg, and more.
+> **Important:** This repo is **personal** and assumes **SSH access to GitHub**. Submodules are SSH-only. Cloning with HTTPS **will fail**.
 
 ---
 
-## 🖥️ Fresh Windows (WSL) Setup
+## ✨ What you get
 
-### 1. Install WSL with Ubuntu
-In **PowerShell** (run as Administrator):
-```powershell
-wsl --install -d Ubuntu
-````
-
-Restart your computer if prompted.
+* **Automated setup**: zsh + Homebrew + dev tools + configs
+* **Kickstart Neovim** (fork) auto-installed via submodule
+* **Oh My Zsh** vendored as a submodule (no curl pipes)
+* **Brewfile-based** packages (common + OS-specific)
+* **Shell niceties**: `fzf`, improved completion, aliases
+* **Daily auto-update** on first shell of the day (`update-all`)
+* **Idempotent** bootstrap: safe to re-run
 
 ---
 
-### 2. Update & Install Git
+## ⚙️ Requirements
 
-In **Ubuntu (WSL)**:
+* **GitHub SSH key added** to your account (instructions below)
+* WSL: **Ubuntu** (22.04/24.04) or macOS 13+
+* Internet and Git
+
+---
+
+## 🚀 TL;DR (once SSH is ready)
 
 ```bash
-sudo apt update && sudo apt install -y git
-```
+# Clone (SSH + submodules)
+git clone --recurse-submodules git@github.com:n45h4n/dotfiles.git ~/dotfiles
+cd ~/dotfiles
 
----
-
-### 3. Clone & Bootstrap
-
-```bash
-git clone --recurse-submodules https://github.com/n45h4n/dotfiles.git ~/dotfiles
-cd dotfiles
+# Bootstrap (installs brew, tools, zsh config, etc.)
 ./scripts/bootstrap.sh
 ```
 
----
+Then restart your shell:
 
-### 4. Restart WSL
+* **WSL**: `wsl --shutdown` (from PowerShell), reopen Ubuntu
+* **macOS**: close & reopen Terminal/iTerm2
 
-In **PowerShell**:
-
-```powershell
-wsl --shutdown
-```
-
-Reopen Ubuntu — you’ll land in zsh with everything set up.
-
-✅ Enjoy — zsh + Homebrew + Neovim + all your tools are ready.
+You’ll land in **zsh** with everything ready.
 
 ---
 
-## 🍎 Fresh Mac Setup
+## 🔑 Set up SSH for GitHub (once per machine)
 
-### 1. Clone & Bootstrap
-
-In **Terminal**:
-
-```bash
-git clone --recurse-submodules https://github.com/n45h4n/dotfiles.git ~/dotfiles
-cd dotfiles
-./scripts/bootstrap.sh
-```
-
----
-
-### 2. Restart Terminal
-
-Close & reopen **Terminal** (or iTerm2).
-
-✅ Done — full zsh + brew + Neovim + all tools set.
-
----
-
-## 📦 Installed Tools (Highlights)
-
-* **Shell & Core:** zsh, git, stow, curl, wget, jq, ripgrep, fd, fzf, tmux, zellij, lazygit, ranger, tree, htop, tldr.
-* **Languages:** Python 3.12 (pipx, uv), Node.js, Go (Linux only by default).
-* **Build Tools:** gcc, make, pkg-config, cmake, ninja.
-* **Databases:** SQLite, MySQL client.
-* **Cloud & Misc:** ngrok, ffmpeg, rclone.
-* **Neovim LSP:** lua-language-server.
-
----
-
-## 🔄 Updating
-
-Updates run automatically **once per day** in the background when you open a shell.
-
-Manual update:
-
-```bash
-update-all
-```
-
-This pulls the latest changes for both:
-
-* Dotfiles repo (rebased to keep local changes)
-* Kickstart.nvim (fast-forward only)
-
----
-
-## Zellij config
-```bash
-zellij setup --dump-config > ~/.config/zellij/config.kdl
-```
-
-Then open it:
-
-```bash
-nvim ~/.config/zellij/config.kdl
-```
-
-📂 How to see your layout directory
-
-```bash
-zellij setup --check
-```
-
-Look for:
-```bash
-LAYOUT DIR: /home/nasri/.config/zellij/layouts
-```
-
-Create it if it doesn't exist
-```bash
-mkdir ~/.config/zellij/layouts
-```
-
-📜 Listing available layouts
-
-```bash
-ls ~/.config/zellij/layouts
-```
-
-If it’s empty, you can create your own layout files there.
-
-ide.kdl
-
-```kdl
-layout {
-  default_tab_template {
-    pane size=1 borderless=true {
-      plugin location="zellij:tab-bar"
-    }
-    children
-    pane size=1 borderless=true {
-      plugin location="zellij:status-bar"
-    }
-  }
-
-  tab name="dev" {
-    pane command="ranger"
-  }
-
-  tab name="test" split_direction="vertical" {
-    pane                               // LEFT column
-
-    pane split_direction="horizontal" {  // RIGHT column split top & bottom
-      pane                              // top-right
-      pane                              // bottom-right
-    }
-  }
-}
-
-```
-
-▶ Using a layout
-
-```bash
-zellij -l name_of_file
-```
----
-## SSH key for GitHub
-
-1️⃣ Check for existing keys
+1. **Check for keys**
 
 ```bash
 ls -al ~/.ssh
 ```
 
-If you see files like id_ed25519 and id_ed25519.pub, you might already have a key.
-If not, continue.
+If `id_ed25519` and `id_ed25519.pub` exist, you can skip generate.
 
-2️⃣ Generate a new SSH key
-GitHub recommends ed25519:
+2. **Generate key (ed25519)**
 
 ```bash
 ssh-keygen -t ed25519 -C "your_email@example.com"
 ```
 
-Replace your_email@example.com with your GitHub email.
+Press **Enter** for default path. Optionally set a passphrase.
 
-When prompted for a file location, press Enter to accept the default (~/.ssh/id_ed25519).
-
-When prompted for a passphrase, you can press Enter for none (or set one for extra security).
-
-3️⃣ Start the SSH agent
+3. **Start agent & add key**
 
 ```bash
 eval "$(ssh-agent -s)"
-```
-
-4️⃣ Add your key to the agent
-
-```bash
 ssh-add ~/.ssh/id_ed25519
 ```
 
-5️⃣ Copy the public key
+4. **Add to GitHub**
+
 ```bash
 cat ~/.ssh/id_ed25519.pub
 ```
 
-Copy the whole output (starts with ssh-ed25519).
+Copy → GitHub → **Settings → SSH and GPG keys → New SSH key** → Paste → Save.
 
-6️⃣ Add it to GitHub
-1. Go to GitHub → Settings → SSH and GPG keys → New SSH key.
-2. Title: anything (e.g., “WSL ThinkPad”).
-3. Paste the key.
-4. Save.
-
-7️⃣ Test connection
+5. **Test**
 
 ```bash
 ssh -T git@github.com
+# Expect: "Hi <username>! You've successfully authenticated..."
 ```
 
-If successful, you’ll see:
+> ✅ Optional safety: force SSH for GitHub to avoid HTTPS mix-ups
 
-```txt
-Hi username! You've successfully authenticated, but GitHub does not provide shell access.
+```bash
+git config --global url."ssh://git@github.com/".insteadOf https://github.com/
 ```
+
 ---
-## Google Cloud
 
-1️⃣ Authenticate
+## 🖥️ Fresh Windows (WSL) Install
+
+1. **Install WSL + Ubuntu** (PowerShell as Admin):
+
+```powershell
+wsl --install -d Ubuntu
+```
+
+Reboot if asked.
+
+2. **Install Git in WSL**
+
+```bash
+sudo apt update && sudo apt install -y git
+```
+
+3. **SSH setup** → follow **Set up SSH** above.
+
+4. **Clone + Bootstrap**
+
+```bash
+git clone --recurse-submodules git@github.com:n45h4n/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./scripts/bootstrap.sh
+```
+
+5. **Restart WSL**
+
+```powershell
+wsl --shutdown
+```
+
+Open Ubuntu again → you’re in zsh.
+
+---
+
+## 🍎 Fresh macOS Install
+
+1. **SSH setup** → follow **Set up SSH** above.
+
+2. **Clone + Bootstrap**
+
+```bash
+git clone --recurse-submodules git@github.com:n45h4n/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+./scripts/bootstrap.sh
+```
+
+3. **Restart Terminal/iTerm2** → done.
+
+---
+
+## 🧰 What the bootstrap does
+
+* Installs **Homebrew** (Linuxbrew on WSL) if missing
+* Installs **common** packages via `brew/Brewfile.common`
+* Installs **OS-specific** packages via `brew/Brewfile.{mac,linux}`
+* Sets up **zsh** with **Oh My Zsh** (vendored submodule) + completions
+* Installs/enables **fzf** keybindings (no rc file spam)
+* Installs/updates **Kickstart.nvim** (vendored submodule)
+* Adds an `update-all` function:
+
+  * `git pull --rebase --autostash` on dotfiles
+  * `git submodule sync && git submodule update --init --recursive`
+  * Re-runs Brew bundles as needed
+* Enables **daily auto-update** the first time you open a shell each day
+
+> You can safely re-run `./scripts/bootstrap.sh` anytime.
+
+---
+
+## 📦 Installed Tools (highlights)
+
+**Shell & Core**: zsh, git, stow, curl, wget, jq, ripgrep, fd, fzf, tmux, zellij, lazygit, ranger, tree, htop, tldr
+**Languages**: Python 3.12 (+pipx/uv), Node.js, Go *(Linux default)*
+**Build**: gcc, make, pkg-config, cmake, ninja
+**DB/CLI**: SQLite, MySQL client
+**Misc**: ngrok, ffmpeg, rclone
+**Neovim**: Kickstart fork + `lua-language-server`
+
+> Exact set is defined in `brew/Brewfile.common` plus `brew/Brewfile.{mac,linux}`.
+
+---
+
+## 🔄 Updates
+
+* **Automatic**: runs once/day when you open a shell
+* **Manual**: run anytime
+
+```bash
+update-all
+```
+
+---
+
+## 🧪 Common commands
+
+```bash
+# Reload your shell config (aliases, PATH, etc.)
+reload
+
+# Update everything now
+update-all
+```
+
+---
+
+## 🧱 Zellij quickstart
+
+Dump a default config:
+
+```bash
+zellij setup --dump-config > ~/.config/zellij/config.kdl
+nvim ~/.config/zellij/config.kdl
+```
+
+Check layout dir:
+
+```bash
+zellij setup --check
+# Look for: LAYOUT DIR: /home/nasri/.config/zellij/layouts
+mkdir -p ~/.config/zellij/layouts
+```
+
+**Sample layout** (`~/.config/zellij/layouts/ide.kdl`)
+
+```kdl
+layout {
+  default_tab_template {
+    pane size=1 borderless=true { plugin location="zellij:tab-bar" }
+    children
+    pane size=1 borderless=true { plugin location="zellij:status-bar" }
+  }
+
+  tab name="dev" { pane command="ranger" }
+
+  tab name="test" split_direction="vertical" {
+    pane
+    pane split_direction="horizontal" {
+      pane
+      pane
+    }
+  }
+}
+```
+
+Use it:
+
+```bash
+zellij -l ide
+```
+
+---
+
+## ☁️ Google Cloud (optional)
+
+Authenticate:
+
 ```bash
 gcloud auth login
 ```
 
-1. This will open your Windows default browser.
-2. Log in with the Google account that owns your project.
-3. Approve the permissions.
+Set defaults:
 
-2️⃣ Set your default project
 ```bash
 gcloud config set project YOUR_PROJECT_ID
+gcloud config set run/region us-central1   # optional
 ```
 
-You can find YOUR_PROJECT_ID in the Google Cloud Console → Dashboard.
-
-3️⃣ (Optional) Set default region & service account
-
-```bash
-gcloud config set run/region us-central1
-```
-
-4️⃣ Verify
+Verify:
 
 ```bash
 gcloud auth list
-```
-
-```bash
 gcloud projects list
 ```
+
 ---
+
+## 🧯 Troubleshooting
+
+**`Permission denied (publickey)` when cloning or updating submodules**
+
+```bash
+# Ensure your SSH key is loaded
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+
+# Test SSH to GitHub
+ssh -T git@github.com
+
+# If repo was cloned via HTTPS, switch to SSH and resync submodules
+git remote set-url origin git@github.com:n45h4n/dotfiles.git
+git submodule sync --recursive
+git submodule update --init --recursive
+```
+
+**fzf keybindings not working**
+
+```bash
+# Re-run the post-bundle script or update-all
+update-all
+# Then restart your shell
+reload
+```
+
+**Homebrew not found after bootstrap (WSL)**
+
+```bash
+# Ensure brew is on PATH (bootstrap should do this)
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.zshrc
+reload
+```
+
+---
+
+## 📜 Notes
+
+* This repo is **built for me** and assumes **SSH-only** GitHub access.
+* Submodules live in `vendor/` and are managed via `git submodule`.
+* If you change Brewfiles, run `update-all` to apply.

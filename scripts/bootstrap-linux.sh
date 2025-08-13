@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Resolve repo root (…/dotfiles) regardless of where this script is called from
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-
 echo "➡️  Bootstrapping Linux/WSL from $DIR"
 
 # 0) Install Homebrew on Linux if missing
@@ -13,57 +11,58 @@ if ! command -v brew >/dev/null 2>&1; then
 	grep -qs 'brew shellenv' "$HOME/.zprofile" || echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >>"$HOME/.zprofile"
 fi
 
-# Ensure ZDOTDIR points to $HOME so Brew zsh reads ~/.zshrc, ~/.zprofile, etc.
+# Ensure ZDOTDIR points to $HOME
 grep -qs 'export ZDOTDIR=$HOME' "$HOME/.zshenv" || echo 'export ZDOTDIR=$HOME' >>"$HOME/.zshenv"
-
-# Ensure .zprofile sources .zshrc for interactive login shells
-grep -qs 'source ~/.zshrc' "$HOME/.zprofile" || cat >>"$HOME/.zprofile" <<'EOF'
-if [[ -o interactive ]]; then
-  [[ -r ~/.zshrc ]] && source ~/.zshrc
-fi
-EOF
 
 # 1) PATH for current session
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
-# 2) Build deps + gcc (brew recommends)
+# 2) Build deps + gcc
 if command -v apt-get >/dev/null 2>&1; then
 	sudo apt-get update -y
 	sudo apt-get install -y build-essential
 fi
 brew install gcc git stow >/dev/null || true
 
-# 3) Ensure vendored forks (submodules) are present
+# 3) Pull submodules
 echo "🔁 Initializing submodules (OMZ + Kickstart)…"
 if [ -d "$DIR/.git" ]; then
 	git -C "$DIR" submodule sync --recursive
 	git -C "$DIR" submodule update --init --recursive
 fi
 
-# 4) Ensure OMZ custom dir exists in your repo (used by $ZSH_CUSTOM)
+# 4) Ensure OMZ custom dir exists
 mkdir -p "$DIR/omz-custom/plugins" "$DIR/omz-custom/themes"
 
-# 5) Ensure brew’s zsh is an allowed login shell (idempotent)
+# 5) Register brew’s zsh as a valid shell (skip chsh on WSL)
 BREW_ZSH="$(brew --prefix)/bin/zsh"
-if [ -x "$BREW_ZSH" ]; then
-	grep -qx "$BREW_ZSH" /etc/shells || echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
+if [ -x "$BREW_ZSH" ] && ! grep -qx "$BREW_ZSH" /etc/shells; then
+	echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
 fi
 
-# 6) Install packages from your Brewfiles
-[ -f "$DIR/brew/Brewfile.common" ] && brew bundle --file="$DIR/brew/Brewfile.common" >/dev/null || true
-[ -f "$DIR/brew/Brewfile.linux" ] && brew bundle --file="$DIR/brew/Brewfile.linux" >/dev/null || true
+# 6) Install packages from Brewfiles (skip google-cloud-cli on Linux)
+[ -f "$DIR/brew/Brewfile.common" ] && brew bundle --file="$DIR/brew/Brewfile.common" --no-upgrade || true
+[ -f "$DIR/brew/Brewfile.linux" ] && grep -v google-cloud-cli "$DIR/brew/Brewfile.linux" | brew bundle --no-upgrade || true
 
-# 7) Make brew zsh default (robust)
-CURRENT_SHELL="$(getent passwd "$USER" | cut -d: -f7 2>/dev/null || true)"
-[ -z "${CURRENT_SHELL:-}" ] && CURRENT_SHELL="$(grep "^$USER:" /etc/passwd | cut -d: -f7 || true)"
-if [ -x "$BREW_ZSH" ] && [ "$CURRENT_SHELL" != "$BREW_ZSH" ]; then
-	chsh -s "$BREW_ZSH" "$USER" || sudo chsh -s "$BREW_ZSH" "$USER" || true
+# 6.5) Install google-cloud-cli via apt on WSL/Debian/Ubuntu
+if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release; then
+	if ! command -v gcloud >/dev/null 2>&1; then
+		sudo apt-get install -y google-cloud-cli || true
+	fi
 fi
 
-# 7b) Safety net: if bash starts interactively, hop into zsh
+# 7) Only try chsh on real Linux
+if ! grep -qi microsoft /proc/version 2>/dev/null; then
+	CURRENT_SHELL="$(getent passwd "$USER" | cut -d: -f7 2>/dev/null || true)"
+	[ -z "${CURRENT_SHELL:-}" ] && CURRENT_SHELL="$(grep "^$USER:" /etc/passwd | cut -d: -f7 || true)"
+	if [ -x "$BREW_ZSH" ] && [ "$CURRENT_SHELL" != "$BREW_ZSH" ]; then
+		chsh -s "$BREW_ZSH" "$USER" || sudo chsh -s "$BREW_ZSH" "$USER" || true
+	fi
+fi
+
+# 7b) Safety net: auto-exec zsh from bash
 if ! grep -qs 'exec zsh -l' "$HOME/.bashrc"; then
 	cat >>"$HOME/.bashrc" <<'EOF'
-# If an interactive bash shell starts, immediately hop into zsh
 case $- in *i*) command -v zsh >/dev/null 2>&1 && exec zsh -l ;; esac
 EOF
 fi
@@ -80,33 +79,30 @@ backup_if_real() {
 	fi
 }
 
-# 8) Backup clashing files so stow/symlinks can link cleanly
+# 8) Backup before stow
 backup_if_real "$HOME/.zshrc"
 backup_if_real "$HOME/.zprofile"
 backup_if_real "$HOME/.config/nvim"
 backup_if_real "$HOME/.config/zellij"
 
-# 9) Stow your dotfiles (adjust package list as needed)
-(cd "$DIR" && stow -v zsh 2>/dev/null || true)
-(cd "$DIR" && stow -v git 2>/dev/null || true)
+# 9) Stow packages
+(cd "$DIR" && stow -v zsh) || true
+(cd "$DIR" && stow -v git) || true
 
-# 10) Neovim: point to your vendored Kickstart fork (no cloning)
-mkdir -p "$HOME/.config"
-ln -snf "$DIR/vendor/kickstart.nvim" "$HOME/.config/nvim"
-
-# 11) Zellij config (if you keep one in the repo)
-[ -d "$DIR/config/zellij" ] && ln -snf "$DIR/config/zellij" "$HOME/.config/zellij"
-
-# 11.5) Oh My Zsh: use your vendored fork
-if [ -d "$DIR/vendor/ohmyzsh" ]; then
-	ln -snf "$DIR/vendor/ohmyzsh" "$HOME/.oh-my-zsh"
+# 10) Force ~/.zshrc to point to repo
+if [ ! -L "$HOME/.zshrc" ] || [ "$(readlink "$HOME/.zshrc" 2>/dev/null)" != "$DIR/zsh/.zshrc" ]; then
+	ln -snf "$DIR/zsh/.zshrc" "$HOME/.zshrc"
 fi
 
-# 12) Post-bundle extras (optional script)
+# 11) Neovim + Zellij configs
+mkdir -p "$HOME/.config"
+ln -snf "$DIR/vendor/kickstart.nvim" "$HOME/.config/nvim"
+[ -d "$DIR/config/zellij" ] && ln -snf "$DIR/config/zellij" "$HOME/.config/zellij"
+
+# 12) Post-bundle extras
 [ -x "$DIR/scripts/post-bundle-common.sh" ] && "$DIR/scripts/post-bundle-common.sh" || true
 
 echo "✅ Linux/WSL bootstrap complete."
-# Helpful for WSL users:
 if grep -qi microsoft /proc/version 2>/dev/null; then
 	echo "👉 In PowerShell, you can run:  wsl --shutdown"
 fi

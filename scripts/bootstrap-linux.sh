@@ -40,9 +40,9 @@ if [ -x "$BREW_ZSH" ] && ! grep -qx "$BREW_ZSH" /etc/shells; then
 	echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
 fi
 
-# 6) Install packages from Brewfiles (skip google-cloud-cli on Linux)
+# 6) Install packages from Brewfiles
 [ -f "$DIR/brew/Brewfile.common" ] && brew bundle --file="$DIR/brew/Brewfile.common" --no-upgrade || true
-[ -f "$DIR/brew/Brewfile.linux" ] && grep -v google-cloud-cli "$DIR/brew/Brewfile.linux" | brew bundle --no-upgrade || true
+[ -f "$DIR/brew/Brewfile.linux"  ] && brew bundle --file="$DIR/brew/Brewfile.linux"  --no-upgrade || true
 
 # 6.5) Install google-cloud-cli via apt on WSL/Debian/Ubuntu
 if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release; then

@@ -1,50 +1,53 @@
+# =============================
+# Oh My Zsh (vendored in dotfiles)
+# =============================
+export ZSH="$HOME/.oh-my-zsh"
+export ZSH_CUSTOM="$HOME/dotfiles/omz-custom"
+
 # Keep PATH/fpath unique and allow # comments in interactive shells
 typeset -U path PATH fpath
 setopt INTERACTIVE_COMMENTS
 
-# ----------------------------------------
-# Appearance
-# ----------------------------------------
+# =============================
+# PATH (prefer your bins, GNU coreutils if available)
+# =============================
+export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+# Apple Silicon Homebrew coreutils
+[ -d /opt/homebrew/opt/coreutils/libexec/gnubin ] && export PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+# Intel mac / Linuxbrew coreutils
+[ -d /usr/local/opt/coreutils/libexec/gnubin ] && export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+[ -d /home/linuxbrew/.linuxbrew/bin ] && export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 
-# helper: is this a GNU tool?
+# Ensure Homebrew in PATH early (works on macOS + Linuxbrew)
+if ! command -v brew >/dev/null 2>&1; then
+  for B in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
+    [ -x "$B" ] && eval "$("$B" shellenv)" && break
+  done
+fi
+
+# =============================
+# Oh My Zsh basic settings
+# =============================
+ZSH_THEME="robbyrussell"
+plugins=(git z fzf)
+
+# ---- Completion preferences (must be set BEFORE OMZ compinit) ----
+zmodload zsh/complist
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+zstyle ':completion:*' menu select
+zstyle ':completion:*' list-choices true   # show matches in a list
+
+# Load OMZ
+source "$ZSH/oh-my-zsh.sh"
+
+# =============================
+# Helpers / detection
+# =============================
 _is_gnu() { "$1" --version 2>/dev/null | head -n1 | grep -qi 'gnu'; }
 
-# LS/grep colors (fallbacks if GNU/flags unavailable)
-# grep: GNU only → --color
-if _is_gnu grep; then
-  alias grep='grep --color=auto'
-fi
-
-# diff: GNU diffutils only → --color (BSD diff lacks it)
-if command -v gdiff >/dev/null 2>&1 || _is_gnu diff; then
-  # prefer gdiff if installed, otherwise diff (when GNU is first in PATH)
-  if command -v gdiff >/dev/null 2>&1; then
-    alias diff='gdiff --color=auto'
-  else
-    alias diff='diff --color=auto'
-  fi
-fi
-
-# Prefer eza; otherwise colored ls with GNU or BSD flags
-if command -v eza >/dev/null 2>&1; then
-  alias ls='eza --icons'
-  alias ll='eza -l --icons'
-  alias la='eza -la --icons'
-  alias lt='eza --tree --icons'
-else
-  if _is_gnu ls; then
-    alias ls='ls --color=auto'
-    alias ll='ls -lh --color=auto'
-    alias la='ls -lAh --color=auto'
-  else
-    # BSD ls on macOS
-    alias ls='ls -G'
-    alias ll='ls -lhG'
-    alias la='ls -lAhG'
-  fi
-fi
-
-# Color man pages
+# =============================
+# Colors for pager (man pages)
+# =============================
 export LESS_TERMCAP_mb=$'\E[01;31m'
 export LESS_TERMCAP_md=$'\E[01;31m'
 export LESS_TERMCAP_me=$'\E[0m'
@@ -53,41 +56,72 @@ export LESS_TERMCAP_so=$'\E[01;44;33m'
 export LESS_TERMCAP_ue=$'\E[0m'
 export LESS_TERMCAP_us=$'\E[01;32m'
 
-# ----------------------------------------
-# Behavior
-# ----------------------------------------
-
-# History (bash: HISTCONTROL/shopt equivalents)
+# =============================
+# History & behavior
+# =============================
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=10000
 SAVEHIST=20000
 setopt HIST_IGNORE_DUPS HIST_FIND_NO_DUPS SHARE_HISTORY INC_APPEND_HISTORY
 setopt HIST_REDUCE_BLANKS
+setopt AUTO_CD       # cd on bare dir name
+setopt NO_CASE_GLOB  # case-insensitive globbing
 
-# Directory/typo helpers
-setopt AUTO_CD            # cd on bare dir name
-setopt NO_CASE_GLOB       # case-insensitive globbing (bash nocaseglob)
-setopt CORRECT            # mild command correction (closest to cdspell)
+# =============================
+# fzf (brew installer set up the files; source them if present)
+# =============================
+if command -v brew >/dev/null 2>&1; then
+  FZF_SHELL="$(brew --prefix)/opt/fzf/shell"
+  [ -f "$FZF_SHELL/completion.zsh" ]   && source "$FZF_SHELL/completion.zsh"
+  [ -f "$FZF_SHELL/key-bindings.zsh" ] && source "$FZF_SHELL/key-bindings.zsh"
+fi
+bindkey '^I' expand-or-complete
 
-# Completion
-autoload -Uz compinit && compinit
-zmodload zsh/complist
-# case-insensitive completion
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
-# menu selection
-zstyle ':completion:*' menu select
+# =============================
+# Grep / diff color
+# =============================
+if _is_gnu grep; then
+  alias grep='grep --color=auto'
+fi
+if command -v gdiff >/dev/null 2>&1 || _is_gnu diff; then
+  if command -v gdiff >/dev/null 2>&1; then
+    alias diff='gdiff --color=auto'
+  else
+    alias diff='diff --color=auto'
+  fi
+fi
 
-# Completion: use zsh's native system (already enabled with compinit above).
-# Do not source global bash-completion; it is a bash script and breaks in zsh.
-# If you ever need a specific bash completion, opt-in per command only.
+# =============================
+# ls / eza (override OMZ aliases cleanly)
+# =============================
+unalias ls 2>/dev/null; unalias ll 2>/dev/null; unalias la 2>/dev/null
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza --icons'
+  alias ll='eza -l --icons'
+  alias la='eza -la --icons'
+  alias lt='eza --tree --icons'
+  compdef _ls eza ls ll la lt
+else
+  if _is_gnu ls; then
+    alias ls='ls --color=auto'
+    alias ll='ls -lh --color=auto'
+    alias la='ls -lAh --color=auto'
+  else
+    alias ls='ls -G'
+    alias ll='ls -lhG'
+    alias la='ls -lAhG'
+  fi
+fi
 
-# fzf shell integration (installer skipped touching rc)
-[ -f "$HOME/.fzf.zsh" ] && source "$HOME/.fzf.zsh"
+# =============================
+# Editor & locale
+# =============================
+export EDITOR="nvim"
+export LANG="en_US.UTF-8"
 
-# ----------------------------------------
-# Aliases & Shortcuts
-# ----------------------------------------
-
+# =============================
+# Aliases & shortcuts (yours)
+# =============================
 alias gs='git status'
 alias gd='git diff'
 alias gu='git pull'
@@ -103,8 +137,9 @@ alias ...='cd ~'
 alias p='cd ~/projects'
 alias v='nvim'
 alias rn='ranger'
-alias zshrc='nvim ~/dotfiles/zsh/.zshrc'
-alias reload='source ~/dotfiles/zsh/.zshrc'
+alias zshrc='nvim ~/.zshrc'
+alias ohmyzsh='cd ~/dotfiles/vendor/ohmyzsh/'
+alias reload='exec zsh -l'
 alias proj='cd $(git rev-parse --show-toplevel 2>/dev/null || echo .)'
 alias pidi='cd ~/projects/pidi/pidi-backend'
 alias dotfiles='cd ~/dotfiles'
@@ -114,143 +149,39 @@ alias ide='zellij -l dev'
 alias cl='clear'
 alias venv='source .venv/bin/activate'
 
-# ----------------------------------------
-# Prompt (username@host cwd (gitbranch))
-# ----------------------------------------
+# =============================
+# Prompt
+# =============================
+# Using OMZ theme (robbyrussell above). For vcs_info prompt, uncomment below.
+# autoload -Uz vcs_info
+# precmd() { vcs_info }
+# zstyle ':vcs_info:git:*' formats ' (%b)'
+# zstyle ':vcs_info:git:*' actionformats ' (%b|%a)'
+# setopt PROMPT_SUBST
+# PROMPT='%F{green}%n@%m%f %F{blue}%~%f${vcs_info_msg_0_} %# '
 
-autoload -Uz vcs_info
-precmd() { vcs_info }
-zstyle ':vcs_info:git:*' formats ' (%b)'
-zstyle ':vcs_info:git:*' actionformats ' (%b|%a)'
-setopt PROMPT_SUBST
-PROMPT='%F{green}%n@%m%f %F{blue}%~%f${vcs_info_msg_0_} %# '
-
-# ----------------------------------------
-# Auto-update: dotfiles repo + Kickstart.nvim
-# ----------------------------------------
-
-# - Runs at most once per day (background)
-# - Dotfiles: pull --rebase (keeps your local edits)
-# - Kickstart.nvim: pull --ff-only (no local edits expected)
-
-typeset -g ZSHRC_PATH="${(%):-%N}"
-typeset -g DOTFILES_DIR="${ZSHRC_PATH:A:h:h}"
-
-# remotes (switch to git@... if you prefer SSH)
-typeset -g DOTFILES_REMOTE="https://github.com/n45h4n/dotfiles.git"
-typeset -g NVIM_REMOTE="https://github.com/n45h4n/kickstart.nvim.git"
-
-typeset -g NVIM_DIR="$HOME/.config/nvim"
-typeset -g CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh-auto-update"
-mkdir -p "$CACHE_DIR"
-
-typeset -g DOTFILES_STAMP="$CACHE_DIR/dotfiles.last"
-typeset -g NVIM_STAMP="$CACHE_DIR/nvim.last"
-typeset -g ONE_DAY=86400
-
-# portable "mtime" (Linux stat -c, macOS stat -f)
-_stat_mtime() { stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null; }
-
-_should_run_now() {
-  local stamp="$1"
-  [[ ! -f "$stamp" ]] && return 0
-  local now=$(date +%s) last=$(_stat_mtime "$stamp")
-  (( now - last >= ONE_DAY ))
-}
-
-_git_has_upstream() {
-  git -C "$1" rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1
-}
-
-_set_upstream_to_origin_head() {
-  local dir="$1"
-  local head_ref
-  head_ref=$(git -C "$dir" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null) || return 1
-  # head_ref like "origin/main" → branch "main"
-  local branch="${head_ref#origin/}"
-  git -C "$dir" branch --quiet --set-upstream-to "origin/$branch" >/dev/null 2>&1
-}
-
-_git_fetch_ahead() {
-  local dir="$1"
-  command -v git >/dev/null 2>&1 || return 1
-  git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 1
-  git -C "$dir" fetch --quiet origin || return 1
-  _git_has_upstream "$dir" || _set_upstream_to_origin_head "$dir" || return 1
-  local local_head remote_head
-  local_head=$(git -C "$dir" rev-parse @)
-  remote_head=$(git -C "$dir" rev-parse @{u} 2>/dev/null) || return 1
-  [[ "$local_head" != "$remote_head" ]]
-}
-
-_auto_update_dotfiles() {
-  [[ -d "$DOTFILES_DIR/.git" ]] || return 0
-  if _git_fetch_ahead "$DOTFILES_DIR"; then
-    # rebase so local tweaks stay on top; autostash handles dirty worktrees
-    git -C "$DOTFILES_DIR" pull --rebase --autostash --quiet \
-      && print -P "%F{cyan}⬆ dotfiles updated — restart shell to pick up any new files%f"
+# =============================
+# Simple updater (safe with submodules)
+# =============================
+update-all() {
+  echo "↻ Updating dotfiles & submodules…"
+  ( cd "$HOME/dotfiles" \
+    && git pull --rebase --autostash --quiet || true \
+    && git submodule sync --recursive \
+    && git submodule update --init --recursive )
+  if command -v brew >/dev/null 2>&1; then
+    [ -f "$HOME/dotfiles/brew/Brewfile.common" ] && brew bundle --file="$HOME/dotfiles/brew/Brewfile.common" >/dev/null || true
+    case "$(uname -s)" in
+      Darwin) [ -f "$HOME/dotfiles/brew/Brewfile.mac" ]   && brew bundle --file="$HOME/dotfiles/brew/Brewfile.mac"   >/dev/null || true ;;
+      Linux)  [ -f "$HOME/dotfiles/brew/Brewfile.linux" ] && brew bundle --file="$HOME/dotfiles/brew/Brewfile.linux" >/dev/null || true ;;
+    esac
   fi
-  : > "$DOTFILES_STAMP"
+  echo "✅ All up to date"
 }
 
-_auto_update_nvim() {
-  if [[ ! -d "$NVIM_DIR/.git" ]]; then
-    mkdir -p "${NVIM_DIR:h}"
-    git clone --quiet "$NVIM_REMOTE" "$NVIM_DIR" \
-      && print -P "%F{cyan}⬇ kickstart.nvim installed%f"
-  else
-    if _git_fetch_ahead "$NVIM_DIR"; then
-      # ff-only to avoid surprises in plugin config
-      git -C "$NVIM_DIR" pull --ff-only --quiet \
-        && print -P "%F{cyan}⬆ kickstart.nvim updated%f"
-    fi
-  fi
-  : > "$NVIM_STAMP"
-}
-
-# Install/upgrade tools from Brewfiles (common + per-OS)
-_bundle_brew() {
-  command -v brew >/dev/null 2>&1 || return 0
-  local root="${DOTFILES_DIR:-$HOME/dotfiles}"
-  local common="$root/brew/Brewfile.common"
-  local osfile
-  case "$(uname -s)" in
-    Darwin) osfile="$root/brew/Brewfile.mac" ;;
-    Linux)  osfile="$root/brew/Brewfile.linux" ;;
-    *) return 0 ;;
-  esac
-  [ -f "$common" ] && { print -P "%F{yellow}📦 brew bundle (common)%f"; brew bundle --file="$common" || true; }
-  [ -f "$osfile" ] && { print -P "%F{yellow}📦 brew bundle ($(uname -s))%f"; brew bundle --file="$osfile" || true; }
-}
-
-# Manual trigger
-update_all() {
-  print -P "%F{yellow}↻ Updating dotfiles, packages, and Kickstart.nvim...%f"
-  _auto_update_dotfiles
-  _bundle_brew
-  _auto_update_nvim
-  print -P "%F{green}✅ All up to date%f"
-}
-alias update-all=update_all
-
-# Auto run once/day in background (interactive TTYs only, single instance)
-if [[ -o interactive ]] && [[ -t 1 ]]; then
-  _AUTO_LOCK="${CACHE_DIR}/auto-update.lock"
-  if mkdir "$_AUTO_LOCK" 2>/dev/null; then
-    {
-      trap 'rmdir "$_AUTO_LOCK" 2>/dev/null || true' EXIT
-      _should_run_now "$DOTFILES_STAMP" && _auto_update_dotfiles || true
-      _should_run_now "$NVIM_STAMP"     && _auto_update_nvim     || true
-    } &>/dev/null & disown
-  fi
-fi
-unsetopt localoptions
-
-# ----------------------------------------
-# Welcome Message
-# ----------------------------------------
-
-# --- fallback Homebrew env if zprofile didn't run (non-login shells) ---
+# =============================
+# Fallback Homebrew env if zprofile didn't run (non-login shells)
+# =============================
 if ! command -v brew >/dev/null 2>&1; then
   if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
@@ -261,8 +192,3 @@ if ! command -v brew >/dev/null 2>&1; then
   fi
 fi
 
-
-# --- Oh My Zsh (vendored via dotfiles) ---
-export ZSH="$HOME/.oh-my-zsh"
-export ZSH_CUSTOM="$HOME/dotfiles/omz-custom"
-source "$ZSH/oh-my-zsh.sh"

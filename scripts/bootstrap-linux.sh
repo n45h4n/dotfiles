@@ -80,14 +80,21 @@ fi
 
 # 7c) Force login shells (bash) to exec zsh immediately (works even before PATH is set)
 for f in "$HOME/.bash_profile" "$HOME/.profile"; do
-  # insert at top if not already present
+  # ensure the file exists so we can safely prepend
+  [ -e "$f" ] || : > "$f"
+
+  # only add once
   if ! grep -qs '/usr/bin/zsh -l' "$f" && ! grep -qs '/home/linuxbrew/.linuxbrew/bin/zsh -l' "$f"; then
-    printf '%s\n' \
-'if [ -x /usr/bin/zsh ]; then' \
-'  exec /usr/bin/zsh -l' \
-'elif [ -x /home/linuxbrew/.linuxbrew/bin/zsh ]; then' \
-'  exec /home/linuxbrew/.linuxbrew/bin/zsh -l' \
-'fi' | cat - "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
+    tmp="$(mktemp)"
+    {
+      echo 'if [ -x /usr/bin/zsh ]; then'
+      echo '  exec /usr/bin/zsh -l'
+      echo 'elif [ -x /home/linuxbrew/.linuxbrew/bin/zsh ]; then'
+      echo '  exec /home/linuxbrew/.linuxbrew/bin/zsh -l'
+      echo 'fi'
+      cat "$f"
+    } > "$tmp"
+    mv "$tmp" "$f"
   fi
 done
 

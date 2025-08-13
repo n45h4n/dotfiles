@@ -34,10 +34,12 @@ fi
 # 4) Ensure OMZ custom dir exists
 mkdir -p "$DIR/omz-custom/plugins" "$DIR/omz-custom/themes"
 
-# 5) Register brew’s zsh as a valid shell (skip chsh on WSL)
-BREW_ZSH="$(brew --prefix)/bin/zsh"
-if [ -x "$BREW_ZSH" ] && ! grep -qx "$BREW_ZSH" /etc/shells; then
-	echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
+# 5) Register brew’s zsh as a valid shell (skip on WSL)
+if ! grep -qi microsoft /proc/version 2>/dev/null; then
+  BREW_ZSH="$(brew --prefix)/bin/zsh"
+  if [ -x "$BREW_ZSH" ] && ! grep -qx "$BREW_ZSH" /etc/shells; then
+    echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
+  fi
 fi
 
 # 6) Install packages from Brewfiles
@@ -75,6 +77,19 @@ if ! grep -qs 'exec zsh -l' "$HOME/.bashrc"; then
 case $- in *i*) command -v zsh >/dev/null 2>&1 && exec zsh -l ;; esac
 EOF
 fi
+
+# 7c) Force login shells (bash) to exec zsh immediately (works even before PATH is set)
+for f in "$HOME/.bash_profile" "$HOME/.profile"; do
+  # insert at top if not already present
+  if ! grep -qs '/usr/bin/zsh -l' "$f" && ! grep -qs '/home/linuxbrew/.linuxbrew/bin/zsh -l' "$f"; then
+    printf '%s\n' \
+'if [ -x /usr/bin/zsh ]; then' \
+'  exec /usr/bin/zsh -l' \
+'elif [ -x /home/linuxbrew/.linuxbrew/bin/zsh ]; then' \
+'  exec /home/linuxbrew/.linuxbrew/bin/zsh -l' \
+'fi' | cat - "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
+  fi
+done
 
 # Helpers for safe backups before linking
 timestamp() { date +%Y%m%d-%H%M%S; }

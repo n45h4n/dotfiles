@@ -223,21 +223,29 @@ mkdir -p ~/.config/zellij/layouts
 ```kdl
 layout {
   default_tab_template {
-    pane size=1 borderless=true { plugin location="zellij:tab-bar" }
+    pane size=1 borderless=true {
+      plugin location="zellij:tab-bar"
+    }
     children
-    pane size=1 borderless=true { plugin location="zellij:status-bar" }
+    pane size=1 borderless=true {
+      plugin location="zellij:status-bar"
+    }
   }
 
-  tab name="dev" { pane command="ranger" }
+  tab name="dev" {
+    pane command="ranger"
+  }
 
   tab name="test" split_direction="vertical" {
-    pane
-    pane split_direction="horizontal" {
-      pane
-      pane
+    pane                               // LEFT column
+
+    pane split_direction="horizontal" {  // RIGHT column split top & bottom
+      pane                              // top-right
+      pane                              // bottom-right
     }
   }
 }
+
 ```
 
 Use it:

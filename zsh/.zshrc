@@ -1,7 +1,7 @@
 # =============================
 # Oh My Zsh (vendored in dotfiles)
 # =============================
-export ZSH="$HOME/.oh-my-zsh"
+export ZSH="$HOME/dotfiles/vendor/ohmyzsh"
 export ZSH_CUSTOM="$HOME/dotfiles/omz-custom"
 
 # Keep PATH/fpath unique and allow # comments in interactive shells
@@ -37,7 +37,7 @@ zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 zstyle ':completion:*' menu select
 zstyle ':completion:*' list-choices true   # show matches in a list
 
-# Load OMZ
+# Load OMZ (this runs compinit)
 source "$ZSH/oh-my-zsh.sh"
 
 # =============================
@@ -75,7 +75,7 @@ if command -v brew >/dev/null 2>&1; then
   [ -f "$FZF_SHELL/completion.zsh" ]   && source "$FZF_SHELL/completion.zsh"
   [ -f "$FZF_SHELL/key-bindings.zsh" ] && source "$FZF_SHELL/key-bindings.zsh"
 fi
-bindkey '^I' expand-or-complete
+# (tab keybinding left to defaults so menu-select works as expected)
 
 # =============================
 # Grep / diff color
@@ -143,7 +143,7 @@ alias reload='exec zsh -l'
 alias proj='cd $(git rev-parse --show-toplevel 2>/dev/null || echo .)'
 alias pidi='cd ~/projects/pidi/pidi-backend'
 alias dotfiles='cd ~/dotfiles'
-alias kickstart='cd ~/kickstart.nvim'
+alias kickstart='cd ~/dotfiles/vendor/kickstart.nvim'
 alias asuri='cd ~/projects/Asuri/'
 alias ide='zellij -l dev'
 alias cl='clear'

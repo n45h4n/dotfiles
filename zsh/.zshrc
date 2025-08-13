@@ -145,7 +145,7 @@ alias pidi='cd ~/projects/pidi/pidi-backend'
 alias dotfiles='cd ~/dotfiles'
 alias kickstart='cd ~/dotfiles/vendor/kickstart.nvim'
 alias asuri='cd ~/projects/Asuri/'
-alias ide='zellij -l dev'
+alias ide='zellij -l ide'
 alias cl='clear'
 alias venv='source .venv/bin/activate'
 

@@ -1,6 +1,5 @@
 # Linux-only extras
 brew "xclip"
 brew "go"                 # keep here; optional on mac
-brew "google-cloud-cli"
 
 # ngrok is handled by scripts/post-bundle-common.sh on Linux

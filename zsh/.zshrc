@@ -26,6 +26,23 @@ if ! command -v brew >/dev/null 2>&1; then
 fi
 
 # =============================
+# WSL fixes: prefer Linux tools, drop Windows npm path
+# =============================
+if grep -qi microsoft /proc/version 2>/dev/null; then
+  # Put standard Linux bins first
+  export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
+
+  # Remove Windows npm dir so we don't hit /mnt/c/.../npm/ngrok
+  export PATH="$(echo "$PATH" | tr ':' '\n' \
+    | grep -viE '^/mnt/c/Users/[^/]+/AppData/Roaming/npm/?$' \
+    | paste -sd: -)"
+
+  # Be explicit about ngrok in WSL if installed
+  [ -x /usr/local/bin/ngrok ] && alias ngrok='/usr/local/bin/ngrok'
+  [ -x /usr/bin/ngrok ] && alias ngrok='/usr/bin/ngrok'
+fi
+
+# =============================
 # Oh My Zsh basic settings
 # =============================
 ZSH_THEME="robbyrussell"

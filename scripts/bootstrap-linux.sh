@@ -36,15 +36,15 @@ mkdir -p "$DIR/omz-custom/plugins" "$DIR/omz-custom/themes"
 
 # 5) Register brew’s zsh as a valid shell (skip on WSL)
 if ! grep -qi microsoft /proc/version 2>/dev/null; then
-  BREW_ZSH="$(brew --prefix)/bin/zsh"
-  if [ -x "$BREW_ZSH" ] && ! grep -qx "$BREW_ZSH" /etc/shells; then
-    echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
-  fi
+	BREW_ZSH="$(brew --prefix)/bin/zsh"
+	if [ -x "$BREW_ZSH" ] && ! grep -qx "$BREW_ZSH" /etc/shells; then
+		echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null
+	fi
 fi
 
 # 6) Install packages from Brewfiles
 [ -f "$DIR/brew/Brewfile.common" ] && brew bundle --file="$DIR/brew/Brewfile.common" --no-upgrade || true
-[ -f "$DIR/brew/Brewfile.linux"  ] && brew bundle --file="$DIR/brew/Brewfile.linux"  --no-upgrade || true
+[ -f "$DIR/brew/Brewfile.linux" ] && brew bundle --file="$DIR/brew/Brewfile.linux" --no-upgrade || true
 
 # 6.5) Install google-cloud-cli via apt on WSL/Debian/Ubuntu
 if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release; then
@@ -53,13 +53,31 @@ if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release; then
 		sudo apt-get update -y
 		sudo apt-get install -y apt-transport-https ca-certificates gnupg curl
 		sudo mkdir -p /usr/share/keyrings
-		curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
-			| sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
-		echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
-			| sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list >/dev/null
+		curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg |
+			sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+		echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" |
+			sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list >/dev/null
 		sudo apt-get update -y
 		sudo apt-get install -y google-cloud-cli
 	fi
+fi
+
+# 6.6) Install ngrok + set up locale (avoid perl/locale warnings)
+if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release; then
+	if ! command -v ngrok >/dev/null 2>&1; then
+		echo "🌐 Installing ngrok..."
+		curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc |
+			sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+		echo "deb https://ngrok-agent.s3.amazonaws.com buster main" |
+			sudo tee /etc/apt/sources.list.d/ngrok.list
+		sudo apt update
+		sudo apt install -y ngrok
+	fi
+
+	echo "🛠 Setting up locale..."
+	sudo apt install -y locales
+	sudo locale-gen en_US.UTF-8
+	sudo update-locale LANG=en_US.UTF-8
 fi
 
 # 7) Only try chsh on real Linux
@@ -80,22 +98,22 @@ fi
 
 # 7c) Force login shells (bash) to exec zsh immediately (works even before PATH is set)
 for f in "$HOME/.bash_profile" "$HOME/.profile"; do
-  # ensure the file exists so we can safely prepend
-  [ -e "$f" ] || : > "$f"
+	# ensure the file exists so we can safely prepend
+	[ -e "$f" ] || : >"$f"
 
-  # only add once
-  if ! grep -qs '/usr/bin/zsh -l' "$f" && ! grep -qs '/home/linuxbrew/.linuxbrew/bin/zsh -l' "$f"; then
-    tmp="$(mktemp)"
-    {
-      echo 'if [ -x /usr/bin/zsh ]; then'
-      echo '  exec /usr/bin/zsh -l'
-      echo 'elif [ -x /home/linuxbrew/.linuxbrew/bin/zsh ]; then'
-      echo '  exec /home/linuxbrew/.linuxbrew/bin/zsh -l'
-      echo 'fi'
-      cat "$f"
-    } > "$tmp"
-    mv "$tmp" "$f"
-  fi
+	# only add once
+	if ! grep -qs '/usr/bin/zsh -l' "$f" && ! grep -qs '/home/linuxbrew/.linuxbrew/bin/zsh -l' "$f"; then
+		tmp="$(mktemp)"
+		{
+			echo 'if [ -x /usr/bin/zsh ]; then'
+			echo '  exec /usr/bin/zsh -l'
+			echo 'elif [ -x /home/linuxbrew/.linuxbrew/bin/zsh ]; then'
+			echo '  exec /home/linuxbrew/.linuxbrew/bin/zsh -l'
+			echo 'fi'
+			cat "$f"
+		} >"$tmp"
+		mv "$tmp" "$f"
+	fi
 done
 
 # Helpers for safe backups before linking

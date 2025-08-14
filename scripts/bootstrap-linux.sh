@@ -49,14 +49,12 @@ fi
 # 6.5) Install google-cloud-cli via apt on WSL/Debian/Ubuntu
 if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release; then
 	if ! command -v gcloud >/dev/null 2>&1; then
-		echo "Installing Google Cloud CLI via apt..."
+		echo "☁️  Installing Google Cloud CLI via apt..."
 		sudo apt-get update -y
 		sudo apt-get install -y apt-transport-https ca-certificates gnupg curl
 		sudo mkdir -p /usr/share/keyrings
-		curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg |
-			sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
-		echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" |
-			sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list >/dev/null
+		curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+		echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list >/dev/null
 		sudo apt-get update -y
 		sudo apt-get install -y google-cloud-cli
 	fi
@@ -66,10 +64,8 @@ fi
 if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release; then
 	if ! command -v ngrok >/dev/null 2>&1; then
 		echo "🌐 Installing ngrok..."
-		curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc |
-			sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-		echo "deb https://ngrok-agent.s3.amazonaws.com buster main" |
-			sudo tee /etc/apt/sources.list.d/ngrok.list
+		curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+		echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
 		sudo apt update
 		sudo apt install -y ngrok
 	fi
@@ -80,11 +76,54 @@ if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release; then
 	sudo update-locale LANG=en_US.UTF-8
 fi
 
+# 6.7) 🐳 Install Docker Engine + Buildx + Docker Compose (Ubuntu/WSL)
+if [ -f /etc/os-release ] && grep -qiE 'ubuntu|debian' /etc/os-release; then
+	if ! command -v docker >/dev/null 2>&1; then
+		echo "🐳 Installing Docker Engine & Compose..."
+		# Remove old packages if present
+		sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
+
+		# Prereqs
+		sudo apt-get update -y
+		sudo apt-get install -y ca-certificates curl gnupg lsb-release
+
+		# Official Docker repo
+		sudo install -m 0755 -d /etc/apt/keyrings
+		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+		echo \
+			"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+		  $(. /etc/os-release && echo "$UBUNTU_CODENAME") stable" |
+			sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+		sudo apt-get update -y
+		sudo apt-get install -y \
+			docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+		# Group for non-root usage
+		sudo groupadd -f docker
+		sudo usermod -aG docker "$USER"
+
+		echo "✅ Docker installed. (Compose via 'docker compose')"
+	fi
+
+	# In WSL, ensure systemd is enabled so the service can run
+	if grep -qi microsoft /proc/version 2>/dev/null; then
+		if ! grep -qs 'systemd=true' /etc/wsl.conf; then
+			echo "⚙️  Enabling systemd in /etc/wsl.conf for Docker service..."
+			sudo mkdir -p /etc
+			# Append or create minimal config that ensures systemd
+			(sudo grep -qs '^\[boot\]' /etc/wsl.conf && sudo sed -i 's/^\[boot\].*/[boot]\nsystemd=true/' /etc/wsl.conf) ||
+				echo -e "[boot]\nsystemd=true" | sudo tee /etc/wsl.conf >/dev/null
+			echo "👉 Please run:  wsl --shutdown  (in PowerShell)  to apply systemd and Docker service."
+		fi
+	fi
+fi
+
 # 7) Only try chsh on real Linux
 if ! grep -qi microsoft /proc/version 2>/dev/null; then
 	CURRENT_SHELL="$(getent passwd "$USER" | cut -d: -f7 2>/dev/null || true)"
 	[ -z "${CURRENT_SHELL:-}" ] && CURRENT_SHELL="$(grep "^$USER:" /etc/passwd | cut -d: -f7 || true)"
-	if [ -x "$BREW_ZSH" ] && [ "$CURRENT_SHELL" != "$BREW_ZSH" ]; then
+	if [ -x "${BREW_ZSH:-}" ] && [ "$CURRENT_SHELL" != "$BREW_ZSH" ]; then
 		chsh -s "$BREW_ZSH" "$USER" || sudo chsh -s "$BREW_ZSH" "$USER" || true
 	fi
 fi
@@ -98,10 +137,7 @@ fi
 
 # 7c) Force login shells (bash) to exec zsh immediately (works even before PATH is set)
 for f in "$HOME/.bash_profile" "$HOME/.profile"; do
-	# ensure the file exists so we can safely prepend
 	[ -e "$f" ] || : >"$f"
-
-	# only add once
 	if ! grep -qs '/usr/bin/zsh -l' "$f" && ! grep -qs '/home/linuxbrew/.linuxbrew/bin/zsh -l' "$f"; then
 		tmp="$(mktemp)"
 		{
@@ -154,4 +190,5 @@ ln -snf "$DIR/vendor/kickstart.nvim" "$HOME/.config/nvim"
 echo "✅ Linux/WSL bootstrap complete."
 if grep -qi microsoft /proc/version 2>/dev/null; then
 	echo "👉 In PowerShell, you can run:  wsl --shutdown"
+	echo "👉 After restart, run:  newgrp docker  (or open a new terminal) to use docker without sudo."
 fi

@@ -13,7 +13,7 @@ if ! xcode-select -p >/dev/null 2>&1; then
 fi
 
 # 1) Install Homebrew if missing
-if ! command -v brew >/dev/null 2>&1; then
+if ! command -v brew >/div/null 2>&1; then
 	echo "🍺 Installing Homebrew…"
 	/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
@@ -67,8 +67,24 @@ backup_if_real "$HOME/.config/zellij"
 [ -f "$DIR/brew/Brewfile.common" ] && brew bundle --file="$DIR/brew/Brewfile.common" >/dev/null || true
 [ -f "$DIR/brew/Brewfile.mac" ] && brew bundle --file="$DIR/brew/Brewfile.mac" >/dev/null || true
 
+# 7.5) 🐳 Docker on macOS — Desktop by default (with Compose v2 plugin)
+if ! brew list --cask docker >/dev/null 2>&1; then
+	echo "🐳 Installing Docker Desktop (cask)…"
+	brew install --cask docker
+fi
+
+# Start Docker Desktop once so the helper launches (safe if already running)
+if [ -x "/Applications/Docker.app/Contents/MacOS/Docker" ]; then
+	echo "🚀 Launching Docker Desktop in the background…"
+	open -g -a Docker || true
+fi
+
+# --- Optional CLI-only setup (commented) ---
+# If you prefer *not* to use Docker Desktop, you can use colima:
+# brew install docker docker-compose colima
+# colima start  # creates a local VM with Docker; then use: docker info / docker compose
+
 # 8) Stow your packages (adjust to what you keep in the repo)
-#    This will create ~/.zshrc -> ~/dotfiles/zsh/.zshrc and ~/.zprofile -> ~/dotfiles/zsh/.zprofile
 (cd "$DIR" && stow -v zsh) || true
 (cd "$DIR" && stow -v git) || true
 
@@ -104,3 +120,4 @@ fi
 (cd "$DIR" && stow -v zsh) || true
 
 echo "✅ mac bootstrap complete. Open a new terminal."
+echo "ℹ️  Compose is available as:  docker compose"

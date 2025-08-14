@@ -190,10 +190,12 @@ alias venv='source .venv/bin/activate'
 # =============================
 update-all() {
   echo "↻ Updating dotfiles & submodules…"
-  ( cd "$HOME/dotfiles" \
-    && git pull --rebase --autostash --quiet || true \
-    && git submodule sync --recursive \
-    && git submodule update --init --recursive )
+  (
+    cd "$HOME/dotfiles" \
+      && git pull --rebase --autostash --quiet || true \
+      && git submodule sync --recursive \
+      && git submodule update --init --recursive
+  )
   if command -v brew >/dev/null 2>&1; then
     [ -f "$HOME/dotfiles/brew/Brewfile.common" ] && brew bundle --file="$HOME/dotfiles/brew/Brewfile.common" >/dev/null || true
     case "$(uname -s)" in
@@ -202,6 +204,9 @@ update-all() {
     esac
   fi
   echo "✅ All up to date"
+
+  # Reload zsh config so new PATH and settings take effect immediately
+  source "$HOME/.zshrc" >/dev/null 2>&1 || true
 }
 
 # =============================

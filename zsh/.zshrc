@@ -18,6 +18,14 @@ export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 [ -d /usr/local/opt/coreutils/libexec/gnubin ] && export PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
 [ -d /home/linuxbrew/.linuxbrew/bin ] && export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 
+# ---- MySQL client (Homebrew keg-only) on PATH ----
+# macOS (Apple Silicon)
+[ -d /opt/homebrew/opt/mysql-client/bin ] && export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
+# macOS (Intel)
+[ -d /usr/local/opt/mysql-client/bin ] && export PATH="/usr/local/opt/mysql-client/bin:$PATH"
+# Linuxbrew / WSL
+[ -d /home/linuxbrew/.linuxbrew/opt/mysql-client/bin ] && export PATH="/home/linuxbrew/.linuxbrew/opt/mysql-client/bin:$PATH"
+
 # Ensure Homebrew in PATH early (works on macOS + Linuxbrew)
 if ! command -v brew >/dev/null 2>&1; then
   for B in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do

@@ -53,7 +53,8 @@ fi
 # =============================
 # Oh My Zsh basic settings
 # =============================
-ZSH_THEME="robbyrussell"
+export ZSH_CUSTOM="$HOME/dotfiles/omz-custom"
+ZSH_THEME="myrobby"
 plugins=(git z fzf)
 
 # ---- Completion preferences (must be set BEFORE OMZ compinit) ----

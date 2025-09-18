@@ -318,6 +318,24 @@ reload
 
 ---
 
+## Ranger
+
+Dump config file:
+```bash
+ranger --copy-config=rifle   # only if you don’t already have ~/.config/ranger/rifle.conf
+nvim ~/.config/ranger/rifle.conf
+```
+
+Add this at the top of the file above the websites section if having trouble opening yaml/yml files:
+```bash
+# --- YAML → open with Neovim ---
+ext yaml|yml = nvim -- "$1"
+mime ^(text|application)/(x-)?yaml$ = nvim -- "$1"
+```
+
+Reload ranger.
+
+
 ## 📜 Notes
 
 * This repo is **built for me** and assumes **SSH-only** GitHub access.

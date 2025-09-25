@@ -146,6 +146,27 @@ cd ~/dotfiles
 
 ---
 
+## Arch Linux install
+
+Install yay:
+
+```bash
+sudo pacman -S --needed base-devel git
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+```
+
+Then clone the repo and run the script:
+
+```bash
+git clone https://github.com/n45h4n/dotfiles.git
+cd dotfiles
+bash scripts/install_arch.sh
+```
+
+---
+
 ## 🧰 What the bootstrap does
 
 * Installs **Homebrew** (Linuxbrew on WSL) if missing

@@ -205,28 +205,28 @@ This script:
 
 **Make targets:** `make setup-arch` runs the same flow (TTY-first). No display manager is installed; start your WM/Wayland session manually (e.g., `startw`, `starth`, or `startx11`) when you need it.
 
-If zsh is not installed yet:
+### If zsh is not installed yet:
 
-### 1) Install zsh
+**1) Install zsh**
 
 ```bash
 sudo pacman -S --needed zsh
 ```
 
-### 2) Find the exact path
+**2) Find the exact path**
 
 ```bash
 command -v zsh
 # expect something like: /usr/bin/zsh
 ```
 
-### 3) Make sure the path is allowed as a login shell
+**3) Make sure the path is allowed as a login shell**
 
 ```bash
 grep zsh /etc/shells || echo "$(command -v zsh)" | sudo tee -a /etc/shells
 ```
 
-### 4) Set zsh as your login shell
+**4) Set zsh as your login shell**
 
 ```bash
 chsh -s "$(command -v zsh)"
@@ -234,13 +234,13 @@ chsh -s "$(command -v zsh)"
 
 Log out and back in (or reboot).
 
-### 5) Use it immediately (without logout)
+**5) Use it immediately (without logout)**
 
 ```bash
 exec zsh -l
 ```
 
-### 6) Verify
+**6) Verify**
 
 ```bash
 echo $SHELL

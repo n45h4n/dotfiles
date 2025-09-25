@@ -2,7 +2,28 @@
 
 Personal dotfiles for **zsh** on **WSL (Ubuntu)** and **macOS**.
 
-> **Important:** This repo is **personal** and assumes **SSH access to GitHub**. Submodules are SSH-only. Cloning with HTTPS **will fail**.
+> **Important**
+> This repo is **personal** and assumes **SSH access to GitHub**. Submodules are SSH-only. Cloning with HTTPS **will fail**.
+
+---
+
+## 🧭 Contents
+
+* [What you get](#-what-you-get)
+* [Requirements](#-requirements)
+* [TL;DR](#-tldr-once-ssh-is-ready)
+* [Set up SSH for GitHub](#-set-up-ssh-for-github-once-per-machine)
+* [Fresh Windows (WSL) install](#-fresh-windows-wsl-install)
+* [Fresh macOS install](#-fresh-macos-install)
+* [Arch Linux install](#-arch-linux-install)
+* [What the bootstrap does](#-what-the-bootstrap-does)
+* [Installed tools (highlights)](#-installed-tools-highlights)
+* [Updates & common commands](#-updates)
+* [Zellij quickstart](#-zellij-quickstart)
+* [Google Cloud (optional)](#-google-cloud-optional)
+* [Troubleshooting](#-troubleshooting)
+* [Ranger](#ranger)
+* [Notes](#-notes)
 
 ---
 
@@ -20,7 +41,7 @@ Personal dotfiles for **zsh** on **WSL (Ubuntu)** and **macOS**.
 
 ## ⚙️ Requirements
 
-* **GitHub SSH key added** to your account (instructions below)
+* **GitHub SSH key** added to your account (instructions below)
 * WSL: **Ubuntu** (22.04/24.04) or macOS 13+
 * Internet and Git
 
@@ -86,7 +107,7 @@ ssh -T git@github.com
 # Expect: "Hi <username>! You've successfully authenticated..."
 ```
 
-> ✅ Optional safety: force SSH for GitHub to avoid HTTPS mix-ups
+> ✅ **Optional safety:** force SSH for GitHub to avoid HTTPS mix-ups
 
 ```bash
 git config --global url."ssh://git@github.com/".insteadOf https://github.com/
@@ -146,9 +167,9 @@ cd ~/dotfiles
 
 ---
 
-## Arch Linux install
+## 🐧 Arch Linux install
 
-Install an AUR helper (optional, for `google-cloud-cli` + `ngrok`):
+**Install an AUR helper (optional, for `google-cloud-cli` + `ngrok`):**
 
 ```bash
 sudo pacman -S --needed base-devel git
@@ -157,7 +178,7 @@ cd yay
 makepkg -si
 ```
 
-Clone with SSH (submodules require it) and run the installer:
+**Clone with SSH (submodules require it) and run the installer:**
 
 ```bash
 git clone --recurse-submodules git@github.com:n45h4n/dotfiles.git ~/dotfiles
@@ -172,7 +193,7 @@ This script:
 * Runs the shared installer (`scripts/install_common.sh`) which vendors Kickstart.nvim and writes `~/.config/nvim/init.lua` as a bridge into `vendor/kickstart.nvim`.
 * Switches your login shell to `/usr/bin/zsh`; log out and back in to take effect.
 
-Make targets: `make setup-arch` runs the same flow (TTY-first). No display manager is installed; start your WM/Wayland session manually (e.g., `startw`, `starth`, or `startx11`) when you need it.
+**Make targets:** `make setup-arch` runs the same flow (TTY-first). No display manager is installed; start your WM/Wayland session manually (e.g., `startw`, `starth`, or `startx11`) when you need it.
 
 ---
 
@@ -199,12 +220,12 @@ Make targets: `make setup-arch` runs the same flow (TTY-first). No display manag
 
 ## 📦 Installed Tools (highlights)
 
-**Shell & Core**: zsh, git, stow, curl, wget, jq, ripgrep, fd, fzf, tmux, zellij, lazygit, ranger, tree, htop, tldr *(Arch installs via `packages/arch.txt` with `pacman`)*
-**Languages**: Python 3.12 (+pipx/uv), Node.js, Go *(Linux default)*
-**Build**: gcc, make, pkg-config, cmake, ninja
-**DB/CLI**: SQLite, MySQL client
-**Misc**: ngrok, ffmpeg, rclone
-**Neovim**: Kickstart fork + `lua-language-server`
+* **Shell & Core**: zsh, git, stow, curl, wget, jq, ripgrep, fd, fzf, tmux, zellij, lazygit, ranger, tree, htop, tldr *(Arch installs via `packages/arch.txt` with `pacman`)*
+* **Languages**: Python 3.12 (+pipx/uv), Node.js, Go *(Linux default)*
+* **Build**: gcc, make, pkg-config, cmake, ninja
+* **DB/CLI**: SQLite, MySQL client
+* **Misc**: ngrok, ffmpeg, rclone
+* **Neovim**: Kickstart fork + `lua-language-server`
 
 > Exact set is defined in `brew/Brewfile.common` plus `brew/Brewfile.{mac,linux}`. Arch reads from `packages/arch.txt`.
 
@@ -235,14 +256,14 @@ update-all
 
 ## 🧱 Zellij quickstart
 
-Dump a default config:
+**Dump a default config:**
 
 ```bash
 zellij setup --dump-config > ~/.config/zellij/config.kdl
 nvim ~/.config/zellij/config.kdl
 ```
 
-Check layout dir:
+**Check layout dir:**
 
 ```bash
 zellij setup --check
@@ -277,10 +298,9 @@ layout {
     }
   }
 }
-
 ```
 
-Use it:
+**Use it:**
 
 ```bash
 zellij -l ide
@@ -290,20 +310,20 @@ zellij -l ide
 
 ## ☁️ Google Cloud (optional)
 
-Authenticate:
+**Authenticate:**
 
 ```bash
 gcloud auth login
 ```
 
-Set defaults:
+**Set defaults:**
 
 ```bash
 gcloud config set project YOUR_PROJECT_ID
 gcloud config set run/region us-central1   # optional
 ```
 
-Verify:
+**Verify:**
 
 ```bash
 gcloud auth list
@@ -360,21 +380,24 @@ hash pipx 2>/dev/null && pipx upgrade-all
 
 ## Ranger
 
-Dump config file:
+**Dump config file:**
+
 ```bash
 ranger --copy-config=rifle   # only if you don’t already have ~/.config/ranger/rifle.conf
 nvim ~/.config/ranger/rifle.conf
 ```
 
-Add this at the top of the file above the websites section if having trouble opening yaml/yml files:
+**Add this at the top of the file above the websites section if having trouble opening yaml/yml files:**
+
 ```bash
 # --- YAML → open with Neovim ---
 ext yaml|yml = nvim -- "$1"
 mime ^(text|application)/(x-)?yaml$ = nvim -- "$1"
 ```
 
-Reload ranger.
+**Reload ranger.**
 
+---
 
 ## 📜 Notes
 

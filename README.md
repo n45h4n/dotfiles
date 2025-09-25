@@ -148,7 +148,7 @@ cd ~/dotfiles
 
 ## Arch Linux install
 
-Install yay:
+Install an AUR helper (optional, for `google-cloud-cli` + `ngrok`):
 
 ```bash
 sudo pacman -S --needed base-devel git
@@ -157,13 +157,22 @@ cd yay
 makepkg -si
 ```
 
-Then clone the repo and run the script:
+Clone with SSH (submodules require it) and run the installer:
 
 ```bash
-git clone https://github.com/n45h4n/dotfiles.git
-cd dotfiles
+git clone --recurse-submodules git@github.com:n45h4n/dotfiles.git ~/dotfiles
+cd ~/dotfiles
 bash scripts/install_arch.sh
 ```
+
+This script:
+
+* Updates the system and installs everything from `packages/arch.txt` via `pacman`.
+* Installs AUR extras (`google-cloud-cli`, `ngrok`) automatically **only if** `yay` or `paru` is already on `PATH`; otherwise they are skipped.
+* Runs the shared installer (`scripts/install_common.sh`) which vendors Kickstart.nvim and writes `~/.config/nvim/init.lua` as a bridge into `vendor/kickstart.nvim`.
+* Switches your login shell to `/usr/bin/zsh`; log out and back in to take effect.
+
+Make targets: `make setup-arch` runs the same flow (TTY-first). No display manager is installed; start your WM/Wayland session manually (e.g., `startw`, `starth`, or `startx11`) when you need it.
 
 ---
 
@@ -174,7 +183,7 @@ bash scripts/install_arch.sh
 * Installs **OS-specific** packages via `brew/Brewfile.{mac,linux}`
 * Sets up **zsh** with **Oh My Zsh** (vendored submodule) + completions
 * Installs/enables **fzf** keybindings (no rc file spam)
-* Installs/updates **Kickstart.nvim** (vendored submodule)
+* Installs/updates **Kickstart.nvim** (vendored submodule) and keeps `~/.config/nvim/init.lua` pointing at `vendor/kickstart.nvim`
 * Adds an `update-all` function:
 
   * `git pull --rebase --autostash` on dotfiles
@@ -184,18 +193,20 @@ bash scripts/install_arch.sh
 
 > You can safely re-run `./scripts/bootstrap.sh` anytime.
 
+`./scripts/bootstrap.sh` auto-detects macOS vs Ubuntu/WSL vs Arch. macOS + Ubuntu/WSL flows install Homebrew/Linuxbrew and apply `brew/Brewfile.*`; Arch runs `scripts/install_arch.sh` which leans on `pacman` + `packages/arch.txt`.
+
 ---
 
 ## 📦 Installed Tools (highlights)
 
-**Shell & Core**: zsh, git, stow, curl, wget, jq, ripgrep, fd, fzf, tmux, zellij, lazygit, ranger, tree, htop, tldr
+**Shell & Core**: zsh, git, stow, curl, wget, jq, ripgrep, fd, fzf, tmux, zellij, lazygit, ranger, tree, htop, tldr *(Arch installs via `packages/arch.txt` with `pacman`)*
 **Languages**: Python 3.12 (+pipx/uv), Node.js, Go *(Linux default)*
 **Build**: gcc, make, pkg-config, cmake, ninja
 **DB/CLI**: SQLite, MySQL client
 **Misc**: ngrok, ffmpeg, rclone
 **Neovim**: Kickstart fork + `lua-language-server`
 
-> Exact set is defined in `brew/Brewfile.common` plus `brew/Brewfile.{mac,linux}`.
+> Exact set is defined in `brew/Brewfile.common` plus `brew/Brewfile.{mac,linux}`. Arch reads from `packages/arch.txt`.
 
 ---
 
@@ -335,6 +346,14 @@ reload
 eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.zshrc
 reload
+```
+
+**Mason (Neovim) tools failing on Arch**
+
+```bash
+# Ensure pipx is on PATH and compilers from packages/arch.txt are installed
+pipx ensurepath
+hash pipx 2>/dev/null && pipx upgrade-all
 ```
 
 ---

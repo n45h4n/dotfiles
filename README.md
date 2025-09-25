@@ -146,13 +146,24 @@ cd ~/dotfiles
 
 ---
 
-## 🏹 Arch Linux
+## Arch Linux install
 
-* **Prereqs**: sudo access on the machine (the installer uses `sudo pacman`).
-* **Install**: `make setup` (auto-detects) or `make setup-arch` from the repo root.
-* **AUR helpers**: if `paru` or `yay` is installed, they are used to install `google-cloud-cli` and `ngrok`. Without a helper those packages are skipped.
-* **Docker**: after the installer finishes, enable it with `sudo systemctl enable --now docker`.
-* **Display managers**: this repo only targets terminal/SSH workflows and does **not** enable any graphical session or DM.
+Install yay:
+
+```bash
+sudo pacman -S --needed base-devel git
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si
+```
+
+Then clone the repo and run the script:
+
+```bash
+git clone https://github.com/n45h4n/dotfiles.git
+cd dotfiles
+bash scripts/install_arch.sh
+```
 
 ---
 

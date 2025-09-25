@@ -77,7 +77,11 @@ ls -al ~/.ssh
 
 If `id_ed25519` and `id_ed25519.pub` exist, you can skip generate.
 
-Install OpenSSH:
+Install Git and OpenSSH:
+
+```bash
+sudo pacman -S --needed git
+```
 
 ```bash
 sudo pacman -S --needed openssh

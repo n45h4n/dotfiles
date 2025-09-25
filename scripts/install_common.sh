@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+export DOTFILES_DIR="${REPO_ROOT}"
 
 log() {
   printf '\033[1;34m[install-common]\033[0m %s\n' "$*"
@@ -54,25 +55,29 @@ configure_zshenv() {
 
 configure_zprofile() {
   local content
-  content=$(cat <<EOF
-export DOTFILES_DIR="${REPO_ROOT}"
+# Keep $DOTFILES_DIR literal so the user's shell expands it later.
+  content=$(cat <<'EOF'
+export DOTFILES_DIR="__DOTFILES_DIR__"
 if [ -f "$DOTFILES_DIR/zsh/.zprofile" ]; then
   . "$DOTFILES_DIR/zsh/.zprofile"
 fi
 EOF
 )
+  content=${content/__DOTFILES_DIR__/${REPO_ROOT}}
   append_guarded_block "$HOME/.zprofile" "dotfiles-zprofile" "$content"
 }
 
 configure_zshrc() {
   local content
-  content=$(cat <<EOF
-export DOTFILES_DIR="${REPO_ROOT}"
+# Keep $DOTFILES_DIR literal so the user's shell expands it later.
+  content=$(cat <<'EOF'
+export DOTFILES_DIR="__DOTFILES_DIR__"
 if [ -f "$DOTFILES_DIR/zsh/.zshrc" ]; then
   . "$DOTFILES_DIR/zsh/.zshrc"
 fi
 EOF
 )
+  content=${content/__DOTFILES_DIR__/${REPO_ROOT}}
   append_guarded_block "$HOME/.zshrc" "dotfiles-zshrc" "$content"
 }
 

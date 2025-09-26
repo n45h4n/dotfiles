@@ -14,9 +14,45 @@ log() {
   printf '\033[1;35m[install-arch]\033[0m %s\n' "$*"
 }
 
+require_root() {
+  if [ "$(id -u)" -ne 0 ]; then
+    log "This installer must be run as root. Try re-running with sudo."
+    exit 1
+  fi
+}
+
+TARGET_USER=""
+TARGET_HOME=""
+
+initialize_target_context() {
+  TARGET_USER="${SUDO_USER:-$USER}"
+  TARGET_HOME="$(getent passwd "$TARGET_USER" 2>/dev/null | cut -d: -f6 || true)"
+  if [ -z "$TARGET_HOME" ]; then
+    TARGET_HOME="$(awk -F: -v user="$TARGET_USER" '$1 == user {print $6}' /etc/passwd 2>/dev/null || true)"
+  fi
+  if [ -z "$TARGET_HOME" ]; then
+    TARGET_HOME="$HOME"
+  fi
+}
+
+run_as_target_user() {
+  if [ -z "$TARGET_USER" ]; then
+    initialize_target_context
+  fi
+  if [ "$TARGET_USER" = "$(id -un)" ]; then
+    env HOME="$TARGET_HOME" "$@"
+    return
+  fi
+  if command -v sudo >/dev/null 2>&1; then
+    sudo -u "$TARGET_USER" env HOME="$TARGET_HOME" "$@"
+  else
+    runuser -u "$TARGET_USER" -- env HOME="$TARGET_HOME" "$@"
+  fi
+}
+
 ensure_pacman_update() {
   log "Updating system packages via pacman"
-  sudo pacman -Syu --noconfirm
+  pacman -Syu --noconfirm
 }
 
 read_packages() {
@@ -40,13 +76,86 @@ install_packages() {
     return
   fi
   log "Installing core packages via pacman"
-  sudo pacman -S --needed --noconfirm "${PACKAGES[@]}"
+  pacman -S --needed --noconfirm "${PACKAGES[@]}"
+}
+
+# Ensure Docker packages, service, and group membership are configured idempotently.
+ensure_docker_stack() {
+  local -a docker_packages missing
+  if [ -z "$TARGET_USER" ]; then
+    initialize_target_context
+  fi
+  docker_packages=(docker docker-buildx docker-compose)
+  missing=()
+
+  for pkg in "${docker_packages[@]}"; do
+    if ! pacman -Q "$pkg" >/dev/null 2>&1; then
+      missing+=("$pkg")
+    fi
+  done
+
+  if [ "${#missing[@]}" -gt 0 ]; then
+    log "Installing Docker packages: ${missing[*]}"
+    pacman -S --needed --noconfirm "${missing[@]}"
+  else
+    log "Docker packages already installed"
+  fi
+
+  if command -v systemctl >/dev/null 2>&1; then
+    if systemctl is-enabled docker >/dev/null 2>&1; then
+      log "docker service already enabled"
+    else
+      log "Enabling docker service"
+      systemctl enable docker >/dev/null 2>&1 || log "Failed to enable docker service; continuing"
+    fi
+    if systemctl is-active docker >/dev/null 2>&1; then
+      log "docker service already running"
+    else
+      log "Starting docker service"
+      systemctl start docker >/dev/null 2>&1 || log "Failed to start docker service; continuing"
+    fi
+  else
+    log "systemctl not available; skipping docker service enablement"
+  fi
+
+  local docker_user group_list
+  docker_user="$TARGET_USER"
+  if getent passwd "$docker_user" >/dev/null 2>&1; then
+    group_list="$(id -nG "$docker_user" 2>/dev/null || true)"
+    if printf '%s\n' "$group_list" | tr ' ' '\n' | grep -qx 'docker'; then
+      log "User $docker_user already in docker group"
+    else
+      log "Adding user $docker_user to docker group"
+      usermod -aG docker "$docker_user"
+    fi
+  else
+    log "User $docker_user not found; skipping docker group membership"
+  fi
+
+  if command -v docker >/dev/null 2>&1; then
+    log "docker --version"
+    docker --version
+  else
+    log "docker command not available"
+  fi
+
+  if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+    log "docker compose version"
+    docker compose version
+  elif command -v docker-compose >/dev/null 2>&1; then
+    log "docker-compose --version"
+    docker-compose --version
+  else
+    log "Docker Compose command not available"
+  fi
 }
 
 configure_rustup() {
   if command -v rustup >/dev/null 2>&1; then
     log "Ensuring rustup default toolchain is stable"
-    rustup default stable >/dev/null 2>&1 || rustup toolchain install stable >/dev/null 2>&1 || true
+    if ! run_as_target_user rustup default stable >/dev/null 2>&1; then
+      run_as_target_user rustup toolchain install stable >/dev/null 2>&1 || true
+    fi
   fi
 }
 
@@ -62,7 +171,7 @@ install_aur_extras() {
     return
   fi
   log "Installing AUR packages (google-cloud-cli, ngrok) via $helper"
-  "$helper" -S --needed --noconfirm google-cloud-cli ngrok || true
+  run_as_target_user "$helper" -S --needed --noconfirm google-cloud-cli ngrok || true
 }
 
 ensure_login_shell() {
@@ -71,25 +180,31 @@ ensure_login_shell() {
   if [ ! -x "$target" ]; then
     return
   fi
-  current="$(getent passwd "$USER" 2>/dev/null | cut -d: -f7 || true)"
+  if [ -z "$TARGET_USER" ]; then
+    initialize_target_context
+  fi
+  current="$(getent passwd "$TARGET_USER" 2>/dev/null | cut -d: -f7 || true)"
   if [ -z "$current" ]; then
-    current="$(grep "^$USER:" /etc/passwd | cut -d: -f7 || true)"
+    current="$(awk -F: -v user="$TARGET_USER" '$1 == user {print $7}' /etc/passwd 2>/dev/null || true)"
   fi
   if [ "$current" = "$target" ]; then
     return
   fi
-  log "Setting default shell to $target"
-  chsh -s "$target" "$USER" || sudo chsh -s "$target" "$USER" || true
+  log "Setting default shell for $TARGET_USER to $target"
+  chsh -s "$target" "$TARGET_USER" || sudo chsh -s "$target" "$TARGET_USER" || true
 }
 
 run_common() {
-  "$SCRIPT_DIR/install_common.sh"
+  run_as_target_user "$SCRIPT_DIR/install_common.sh"
 }
 
 main() {
+  require_root
+  initialize_target_context
   ensure_pacman_update
   read_packages
   install_packages
+  ensure_docker_stack
   configure_rustup
   install_aur_extras
   ensure_login_shell

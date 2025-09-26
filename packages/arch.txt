@@ -37,6 +37,9 @@ nodejs
 npm
 rustup
 go
+docker
+docker-buildx
+docker-compose
 neovim
 lua-language-server
 tree-sitter-cli

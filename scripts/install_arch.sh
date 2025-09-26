@@ -120,13 +120,25 @@ ensure_docker_stack() {
 
   local docker_user group_list
   docker_user="$TARGET_USER"
+
+  if getent group docker >/dev/null 2>&1; then
+    log "docker group already exists"
+  else
+    log "Creating docker group"
+    groupadd docker
+  fi
+
   if getent passwd "$docker_user" >/dev/null 2>&1; then
     group_list="$(id -nG "$docker_user" 2>/dev/null || true)"
     if printf '%s\n' "$group_list" | tr ' ' '\n' | grep -qx 'docker'; then
       log "User $docker_user already in docker group"
     else
       log "Adding user $docker_user to docker group"
-      usermod -aG docker "$docker_user"
+      if usermod -aG docker "$docker_user"; then
+        printf '>>> %s was added to the '\''docker'\'' group. Log out/in (or reboot) to apply.\n' "$docker_user"
+      else
+        log "Failed to add user $docker_user to docker group; continuing"
+      fi
     fi
   else
     log "User $docker_user not found; skipping docker group membership"
@@ -175,11 +187,31 @@ install_aur_extras() {
 }
 
 ensure_login_shell() {
-  local target current
+  local target current shells_file
   target="/usr/bin/zsh"
+  shells_file="/etc/shells"
+
   if [ ! -x "$target" ]; then
+    if [ -e "$target" ]; then
+      log "Target shell $target is not executable; skipping login shell change"
+    else
+      log "Target shell $target not found; skipping login shell change"
+    fi
     return
   fi
+
+  if [ -w "$shells_file" ] || [ ! -e "$shells_file" ]; then
+    if [ -e "$shells_file" ] && grep -Fxq "$target" "$shells_file"; then
+      log "Target shell $target already registered in $shells_file"
+    else
+      log "Registering $target in $shells_file"
+      printf '%s\n' "$target" >>"$shells_file"
+    fi
+  else
+    log "Cannot modify $shells_file; skipping login shell change"
+    return
+  fi
+
   if [ -z "$TARGET_USER" ]; then
     initialize_target_context
   fi

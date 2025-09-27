@@ -44,7 +44,6 @@ neovim
 lua-language-server
 tree-sitter-cli
 xclip
-# Wayland/GUI
 xorg-xwayland
 mesa
 hyprland

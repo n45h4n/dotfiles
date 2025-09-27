@@ -44,6 +44,12 @@ neovim
 lua-language-server
 tree-sitter-cli
 xclip
+# Wayland/GUI
+xorg-xwayland
+mesa
+hyprland
+chromium
+alacritty
 sqlite
 mariadb-clients
 ffmpeg

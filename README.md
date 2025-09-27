@@ -250,6 +250,71 @@ getent passwd $USER | cut -d: -f7
 
 ---
 
+## Install graphics stack (for hyprland)
+
+At minimum you need:
+
+```bash
+sudo pacman -Syu
+sudo pacman -S xorg-xwayland mesa
+```
+
+`mesa` → open-source graphics drivers
+
+`xorg-xwayland` → compatibility layer for X11 apps (Chromium still needs it)
+
+If you’re on NVIDIA, AMD, or Intel, you’ll also need the right driver package:
+
+Intel: `mesa` and `vulkan-intel`
+
+AMD: `mesa` and `vulkan-radeon`
+
+NVIDIA: `nvidia` (proprietary) or `nvidia-open`
+
+---
+
+## Install a compositor / window manager
+
+```bash
+sudo pacman -S hyprland
+```
+
+---
+## Install Chromium
+
+```bash
+sudo pacman -S chromium
+```
+
+---
+
+## Install Alacritty
+
+```bash
+sudo pacman -S alacritty
+```
+
+### Config file
+
+Alacritty looks for a YAML config file in:
+
+* `~/.config/alacritty/alacritty.yml`
+
+To create one:
+
+```bash
+mkdir -p ~/.config/alacritty
+cp /usr/share/doc/alacritty/example/alacritty.yml ~/.config/alacritty/alacritty.yml
+```
+
+---
+
+## Arch Goodies
+
+Here will be a list of all the goodies...
+
+---
+
 ## 🧰 What the bootstrap does
 
 * Installs **Homebrew** (Linuxbrew on WSL) if missing

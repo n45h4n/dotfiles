@@ -1,7 +1,7 @@
 # --- mac-only extras ---
 cask "ngrok"                           # Matches Linux ngrok (cask instead of apt)
 cask "iterm2"                           # GUI terminal
-cask "google-cloud-sdk"
+cask "gcloud-cli"
 # cask "raycast"                          # Spotlight alternative
 # cask "rectangle"                        # Window management
 # cask "monitorcontrol"                   # External display brightness/volume

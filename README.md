@@ -534,10 +534,10 @@ mime ^(text|application)/(x-)?yaml$, has nano = nano -- "$@"
 **Make sure these variables are in your .zshenv**
 
 ```bash
-export ZDOTDIR=$HOME               	# where Zsh looks for dotfiles
 export EDITOR=nvim                 	# default text editor
 export VISUAL=nvim                 	# default visual editor
 
+# export ZDOTDIR=$HOME               	# where Zsh looks for dotfiles
 # export XDG_CONFIG_HOME="$HOME/.config"  # base dir for config files
 ```
 

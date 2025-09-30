@@ -1,3 +1,6 @@
+# Mute bell
+setopt NO_BEEP
+
 # =============================
 # Oh My Zsh (vendored in dotfiles)
 # =============================

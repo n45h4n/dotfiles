@@ -529,8 +529,6 @@ mime ^(text|application)/(x-)?yaml$, has vim  = vim  -- "$@"
 mime ^(text|application)/(x-)?yaml$, has nano = nano -- "$@"
 ```
 
-**Reload ranger.**
-
 **Make sure these variables are in your .zshenv**
 
 ```bash
@@ -540,6 +538,8 @@ export VISUAL=nvim                 	# default visual editor
 # export ZDOTDIR=$HOME               	# where Zsh looks for dotfiles
 # export XDG_CONFIG_HOME="$HOME/.config"  # base dir for config files
 ```
+
+**Reload ranger.**
 
 ---
 

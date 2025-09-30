@@ -502,15 +502,26 @@ hash pipx 2>/dev/null && pipx upgrade-all
 
 ```bash
 ranger --copy-config=rifle   # only if you don’t already have ~/.config/ranger/rifle.conf
+ranger --copy-config=scope   # only f you don't already have ~/.config/ranger/scope.sh
 nvim ~/.config/ranger/rifle.conf
 ```
 
-**Add this at the top of the file above the websites section if having trouble opening yaml/yml files:**
+**Add this at the top of the file above the websites section if having trouble opening yaml/yml, sql files:**
 
 ```bash
-# --- YAML → open with Neovim ---
-ext yaml|yml = nvim -- "$1"
-mime ^(text|application)/(x-)?yaml$ = nvim -- "$1"
+# --- YAML & SQL → open with Neovim ---
+ext yml|yaml, has nvim, X, flag f = nvim -- "$@"
+ext sql,      has nvim, X, flag f = nvim -- "$@"
+
+# Fallbacks if nvim not installed
+ext yml|yaml, has vim,  X, flag f = vim  -- "$@"
+ext sql,      has vim,  X, flag f = vim  -- "$@"
+
+ext yml|yaml, has nano, X, flag f = nano -- "$@"
+ext sql,      has nano, X, flag f = nano -- "$@"
+
+# MIME type matching for YAML
+mime ^(text|application)/(x-)?yaml$, has nvim, X, flag f = nvim -- "$@"
 ```
 
 **Reload ranger.**

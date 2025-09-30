@@ -509,22 +509,37 @@ nvim ~/.config/ranger/rifle.conf
 **Add this at the top of the file above the websites section if having trouble opening yaml/yml, sql files:**
 
 ```bash
-# --- YAML & SQL → open with Neovim ---
-ext yml|yaml, has nvim, X, flag f = nvim -- "$@"
-ext sql,      has nvim, X, flag f = nvim -- "$@"
+# --- YAML & SQL in terminal editors (foreground) ---
+ext yml|yaml|sql, env EDITOR = $EDITOR -- "$@"
+ext yml|yaml|sql, env VISUAL = $VISUAL -- "$@"
 
-# Fallbacks if nvim not installed
-ext yml|yaml, has vim,  X, flag f = vim  -- "$@"
-ext sql,      has vim,  X, flag f = vim  -- "$@"
+# Fallbacks
+ext yml|yaml|sql, has nvim = nvim -- "$@"
+ext yml|yaml|sql, has vim  = vim  -- "$@"
+ext yml|yaml|sql, has nano = nano -- "$@"
 
-ext yml|yaml, has nano, X, flag f = nano -- "$@"
-ext sql,      has nano, X, flag f = nano -- "$@"
+# Your system reports .sql as application/sql — catch it too
+mime ^application/sql$, has nvim = nvim -- "$@"
+mime ^application/sql$, has vim  = vim  -- "$@"
+mime ^application/sql$, has nano = nano -- "$@"
 
-# MIME type matching for YAML
-mime ^(text|application)/(x-)?yaml$, has nvim, X, flag f = nvim -- "$@"
+# YAML may be text/x-yaml or application/x-yaml
+mime ^(text|application)/(x-)?yaml$, has nvim = nvim -- "$@"
+mime ^(text|application)/(x-)?yaml$, has vim  = vim  -- "$@"
+mime ^(text|application)/(x-)?yaml$, has nano = nano -- "$@"
 ```
 
 **Reload ranger.**
+
+**Make sure these variables are in your .zshenv**
+
+```bash
+export ZDOTDIR=$HOME               	# where Zsh looks for dotfiles
+export EDITOR=nvim                 	# default text editor
+export VISUAL=nvim                 	# default visual editor
+
+# export XDG_CONFIG_HOME="$HOME/.config"  # base dir for config files
+```
 
 ---
 

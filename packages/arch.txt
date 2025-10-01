@@ -53,3 +53,4 @@ sqlite
 mariadb-clients
 ffmpeg
 rclone
+wl-clipboard

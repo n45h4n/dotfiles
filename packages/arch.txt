@@ -53,4 +53,7 @@ sqlite
 mariadb-clients
 ffmpeg
 rclone
+brightnessctl
+pamixer
+acpi
 wl-clipboard

@@ -57,3 +57,4 @@ brightnessctl
 pamixer
 acpi
 wl-clipboard
+wofi

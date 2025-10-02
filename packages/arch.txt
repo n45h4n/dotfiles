@@ -47,6 +47,7 @@ xclip
 xorg-xwayland
 mesa
 hyprland
+hyprpaper
 chromium
 alacritty
 sqlite

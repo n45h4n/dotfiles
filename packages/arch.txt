@@ -60,3 +60,4 @@ pamixer
 acpi
 wl-clipboard
 rofi-wayland
+waybar

@@ -59,4 +59,4 @@ brightnessctl
 pamixer
 acpi
 wl-clipboard
-wofi
+rofi-wayland

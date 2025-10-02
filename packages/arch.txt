@@ -48,6 +48,7 @@ xorg-xwayland
 mesa
 hyprland
 hyprpaper
+hyprpicker
 chromium
 alacritty
 sqlite
